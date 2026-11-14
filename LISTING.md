@@ -13,7 +13,9 @@ Do not enter those GitHub Pages URLs in App Store Connect until the pages are ac
 ---
 
 ## Name
-CRRT Rx
+CRRT Prescriber
+
+(App Store name. "CRRT Rx" was already taken in App Store Connect. The home-screen name stays "CRRT Rx".)
 
 ## Subtitle (30 characters max)
 CRRT dosing for nephrology
@@ -47,9 +49,9 @@ Sources include:
 For nephrologists. Educational use only; not a substitute for clinical judgment or your unit protocol.
 
 ## Keywords (100 characters max, comma-separated)
-crrt,dialysis,nephrology,aki,citrate,heparin,effluent,cvvh,cvvhdf,cvvhd,kdigo,icu,dose,scuf
+rx,dialysis,nephrology,aki,citrate,heparin,effluent,cvvh,cvvhdf,cvvhd,kdigo,icu,dose,scuf,renal
 
-(91 characters. Do not repeat the name “CRRT Rx”; Apple ignores words already in the name.)
+(95 characters. Do not repeat words from the name “CRRT Prescriber”; Apple ignores words already in the name.)
 
 ## What’s New (version 1.0)
 First release. Educational CRRT prescribing tool for nephrologists.
