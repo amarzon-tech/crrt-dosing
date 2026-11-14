@@ -1,5 +1,5 @@
 /**
- * CRRT Dosing — UI. Live results, no Calculate button.
+ * CRRT Rx — UI. Live results, no Calculate button.
  * Inputs are never stored. No network after first load.
  */
 (function () {
@@ -60,15 +60,21 @@
   });
   paintThemeIcon();
 
-  /* ── draft flag (covers the citrate content too) ── */
+  /* ── draft flag (hidden when published) ── */
+  const draftBanner = $("draft-banner");
+  const citDraftTag = $("cit-draft-tag");
   if (CFG && CFG.DRAFT) {
-    $("draft-banner").textContent = CFG.DRAFT_BANNER;
-    $("draft-banner").hidden = false;
-    $("cit-draft-tag").textContent = CFG.CITRATE_DRAFT_LABEL;
-    $("cit-draft-tag").hidden = false;
+    if (draftBanner) {
+      draftBanner.textContent = CFG.DRAFT_BANNER;
+      draftBanner.hidden = false;
+    }
+    if (citDraftTag) {
+      citDraftTag.textContent = CFG.CITRATE_DRAFT_LABEL;
+      citDraftTag.hidden = false;
+    }
   } else {
-    $("draft-banner").hidden = true;
-    $("cit-draft-tag").hidden = true;
+    if (draftBanner) draftBanner.hidden = true;
+    if (citDraftTag) citDraftTag.hidden = true;
   }
 
   /* ── chip radios ── */
@@ -706,7 +712,7 @@
     citrate: {
       title: "Citrate precautions — sources",
       html: `
-        <p><strong>Follow your institution’s protocol.</strong> The reference-protocol box uses values from the Prismocitrate 18 clinical-trial protocol (NCT05399537). Those values are a trial protocol, not a Bon Secours Richmond policy. Draft — awaiting Dr D sign-off.</p>
+        <p><strong>Follow your institution’s protocol.</strong> The reference-protocol box uses values from the Prismocitrate 18 clinical-trial protocol (NCT05399537). Those values are a trial protocol, not a Bon Secours Richmond policy.</p>
         <h4>Prismocitrate 18 rate</h4>
         <p class="eq">Qcit (mL/h) = Qb (mL/min) × 60 × target (mmol/L blood) ÷ 18 mmol/L</p>
         <p>This is the unit conversion of the trial statement that the pre-filter infusion is “indexed to the blood flow rate (BFR) to achieve a target blood citrate concentration of 3 mmol/L of blood” (<a href="https://clinicaltrials.gov/study/NCT05399537" target="_blank" rel="noopener">NCT05399537</a>). The 18 mmol/L concentration is from the Prismocitrate 18/0 Instruction for use (Bieffe Medital / Baxter, D13000165 Ver. 4.0: “Citrate C6H5O73- 18 mmol/l”) and is confirmed by the Regiocit SmPC (HPRA, 4 November 2026, PA25288/008/001), which has the same ionic composition and states that the rate depends on the targeted citrate dose and blood flow, with the pump adapted to an operator-set target in mmol citrate per litre of blood. The SmPC adult target range is 3 to 4 mmol/L of blood; the app default remains the trial value of 3, and is editable. The solution is for pre-dilution only and is counted as pre-filter replacement in the effluent, dose, and prescription. Other fluid rates are reduced so total effluent stays at the prescribed dose target. If the citrate rate alone exceeds that target, the other rates are set to 0 and a note suggests lowering blood flow.</p>

@@ -40,7 +40,7 @@ function section(name) {
 }
 
 const DATE = "November 13, 2026";
-const FOOTER = "Draft – verify before use; clinical judgment required";
+const FOOTER = "For nephrologists. Educational use only; not a substitute for clinical judgment or your unit protocol.";
 
 section("Machine prescription — CVVH post with citrate");
 
@@ -63,7 +63,8 @@ const crrt = Rx.formatCrrtPrescription({
 eq(crrt.title, "CRRT PRESCRIPTION", "title");
 eq(crrt.footer, FOOTER, "footer constant still exported");
 includes(crrt.text, "CRRT PRESCRIPTION", "title in text");
-includes(crrt.text, "Draft", "draft label");
+excludes(crrt.text, "Draft", "no draft label in the prescription text");
+includes(crrt.footer, "For nephrologists. Educational use only", "footer is the educational disclaimer");
 includes(crrt.text, "Modality: CVVH (post-filter replacement)", "modality");
 includes(crrt.text, "Blood flow: 200 mL/min", "blood flow");
 includes(crrt.text, "Post-filter replacement: 2,000 mL/h", "post-filter rate");

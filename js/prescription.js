@@ -1,15 +1,15 @@
 /**
- * Plain-text prescription formatter for CRRT Dosing.
+ * Plain-text prescription formatter for CRRT Rx.
  * Formats values already calculated by formulas.js. No medical math here.
  * Inputs are never stored.
  */
 (function (global) {
   "use strict";
 
-  const FOOTER = "Draft – verify before use; clinical judgment required";
+  const FOOTER = "For nephrologists. Educational use only; not a substitute for clinical judgment or your unit protocol.";
   const BLANK = "________________";
   const PUBLISHER = "Wellness Tech LLC";
-  const APP = "CRRT Dosing (draft)";
+  const APP = "CRRT Rx";
 
   function isNum(x) {
     return typeof x === "number" && Number.isFinite(x);
@@ -171,7 +171,7 @@
   function formatCrrtPrescription(opts) {
     opts = opts || {};
     const dateStr = formatLongDate(opts.date);
-    const lines = [ "CRRT PRESCRIPTION", "Draft", "" ];
+    const lines = [ "CRRT PRESCRIPTION", "" ];
 
     const mod = modalityOrderLabel(opts.modality);
     if (mod) lines.push("Modality: " + mod);

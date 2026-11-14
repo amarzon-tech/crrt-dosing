@@ -1,6 +1,6 @@
 /**
- * Static checks for the standalone CRRT Dosing app:
- * draft flag, noindex, robots, offline/no-tracking, simple data entry.
+ * Static checks for the standalone CRRT Rx app:
+ * published state (DRAFT=false, indexing allowed), offline/no-tracking, simple data entry.
  * Run: node tests/static.test.js
  */
 "use strict";
@@ -30,19 +30,33 @@ const cfg = require("../js/config.js");
 const sw = read("sw.js");
 const shipped = ["index.html", "404.html", "js/app.js", "js/formulas.js", "js/prescription.js", "js/config.js", "css/styles.css", "css/standalone.css", "manifest.json", "sw.js"];
 
-section("Draft flag, banner, noindex, robots");
-isTrue(cfg.DRAFT === true, "DRAFT must be true until Dr D signs off");
-isTrue(/id="draft-banner"/.test(html), "draft banner element present");
-isTrue(/<meta name="robots" content="noindex, nofollow">/.test(html), "index.html noindex");
-isTrue(/<meta name="robots" content="noindex/.test(read("404.html")), "404.html noindex");
-isTrue(/User-agent: \*\s+Disallow: \//.test(read("robots.txt")), "robots.txt disallows all");
-isTrue(/id="cit-draft-tag"/.test(html) && /CITRATE_DRAFT_LABEL/.test(app), "citrate content carries the draft label from config");
+section("Published flag, indexing allowed, educational positioning");
+isTrue(cfg.DRAFT === false, "DRAFT is false after Dr D sign-off and publish");
+isTrue(cfg.APP_NAME === "CRRT Rx", "app name is CRRT Rx");
+isTrue(/<title>CRRT Rx<\/title>/.test(html), "document title is CRRT Rx");
+isTrue(/<h1>CRRT Rx<\/h1>/.test(html), "header is CRRT Rx");
+isTrue(/Educational CRRT prescribing tool for nephrologists/.test(html), "subtitle positions the app as educational for nephrologists");
+isTrue(/name="description"[^>]*Educational CRRT prescribing tool for nephrologists/.test(html) || /Educational CRRT prescribing tool for nephrologists/.test(html), "meta description is educational for nephrologists");
+isTrue(/For nephrologists\. Educational use only; not a substitute for clinical judgment or your unit protocol\./.test(html), "footer disclaimer is educational for nephrologists");
+isTrue(!/<meta name="robots" content="noindex/.test(html), "index.html has no noindex");
+isTrue(!/<meta name="robots" content="noindex/.test(read("404.html")), "404.html has no noindex");
+isTrue(/User-agent: \*\s+Allow: \//.test(read("robots.txt")), "robots.txt allows indexing");
+isTrue(!/User-agent: \*\s+Disallow: \//.test(read("robots.txt")), "robots.txt does not disallow all");
+isTrue(!/id="draft-banner"/.test(html), "draft banner is removed");
+isTrue(!/id="cit-draft-tag"/.test(html) && !/id="rx-draft-tag"/.test(html), "citrate and prescription draft tags are removed");
+isTrue(!/Not for clinical use until reviewed by Dr D/.test(html), "old not-for-clinical-use wording is gone from the page");
+isTrue(!/awaiting Dr D sign-off/.test(html + app), "awaiting-sign-off label is gone from the app");
 isTrue(!fs.existsSync(path.join(root, "CNAME")), "no custom domain");
 const review = read("CONTENT_REVIEW.md");
 isTrue(/Dr D confirmed defaults Nov 14 2026/.test(review), "CONTENT_REVIEW records confirmed defaults");
 isTrue(/Dr D chose the 10% default on Nov 14 2026/.test(review), "CONTENT_REVIEW records the 10% downtime default");
-isTrue(!(/^- \[x\]/m).test(review) && !(/^- \[X\]/m).test(review), "no sign-off boxes ticked");
-isTrue(/DRAFT=true/.test(review), "review file still requires DRAFT=true");
+isTrue(/DRAFT=false/.test(review) && /Signed off by Dr D on 14 Nov 2026/.test(review) && /Published at his request/.test(review), "review file records sign-off, DRAFT=false, and publish");
+isTrue((review.match(/^- \[x\] Sign-off/gm) || []).length === 15, "all 15 sign-off items are ticked");
+isTrue(!(/^- \[ \] Sign-off/m).test(review), "no unticked sign-off items");
+const manifest = read("manifest.json");
+isTrue(/"name": "CRRT Rx"/.test(manifest) && /"short_name": "CRRT Rx"/.test(manifest), "manifest name is CRRT Rx");
+isTrue(/Educational CRRT prescribing tool for nephrologists/.test(manifest), "manifest description is educational for nephrologists");
+isTrue(!/Not for clinical use until reviewed by Dr D/.test(manifest), "manifest has no old not-for-clinical-use wording");
 
 section("Offline, no login, no tracking, no stored data");
 shipped.forEach((f) => {
@@ -159,8 +173,8 @@ section("Citrate accumulation predictors (Schultheiß 2012)");
 );
 isTrue(!/INR \d/.test(html) && !/INR of/.test(html) && !/INR ≥/.test(html) && !/INR ≤/.test(html), "no invented INR cut-off");
 
-section("Draft prescription card, no fluid composition");
-isTrue(/id="rx-card"/.test(html) && /id="rx-draft-tag"/.test(html), "prescription card is labeled as a draft");
+section("Prescription card, no fluid composition");
+isTrue(/id="rx-card"/.test(html) && !/id="rx-draft-tag"/.test(html) && !/<span class="h2-sub">draft<\/span>/.test(html), "prescription card is present and not labeled as a draft");
 isTrue(/id="dose-check-card"/.test(html) && /id="dc-pres"/.test(html) && /id="dc-del"/.test(html), "dose check sits below the prescription");
 const rxjs = read("js/prescription.js");
 isTrue(!(html + app + rxjs).includes("Fluid composition / bath"), "no bath composition section in the app");
@@ -225,9 +239,9 @@ isTrue(/applyPrismocitratePreFilter/.test(app), "citrate rate is reconciled as p
 isTrue(/prescribed = \(F\.isNum\(qeffUse\) \? qeffUse : s\.qeffMlH\) \/ wt/.test(app), "dose-check prescribed effluent uses the citrate-inclusive qeff when predilution correction cannot run");
 isTrue(/counted toward the dose/.test(app) && /citrateExceedsTarget/.test(read("js/formulas.js")), "citrate is counted toward the dose and can flag an over-target rate");
 isTrue(/rx-note/.test(app) && /rx-note/.test(read("css/standalone.css")), "dose-cut note is styled as sentence-case body text, not an uppercase section");
-isTrue(/- \[ \] Sign-off: Prismocitrate 18 rate, counting citrate toward the dose, and calcium infusion per protocol/.test(review), "unticked sign-off item for the citrate rate and dose cut");
-isTrue(/DRAFT\s*=\s*true/.test(read("js/config.js")), "DRAFT stays true");
-isTrue(/crrt-dosing-v13/.test(read("sw.js")), "service-worker cache version is bumped");
+isTrue(/- \[x\] Sign-off \(Dr D, 14 Nov 2026\): Prismocitrate 18 rate, counting citrate toward the dose, and calcium infusion per protocol/.test(review), "citrate rate and dose-cut item is signed off");
+isTrue(/DRAFT\s*=\s*false/.test(read("js/config.js")), "DRAFT is false");
+isTrue(/crrt-dosing-v15/.test(read("sw.js")), "service-worker cache version is bumped");
 
 console.log("\n────────────────────────────────────────");
 console.log(`Passed: ${passed}   Failed: ${failed}`);

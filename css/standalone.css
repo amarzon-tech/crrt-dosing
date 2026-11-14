@@ -1,4 +1,4 @@
-/* CRRT Dosing (standalone) — additions on top of the shared styles.css. */
+/* CRRT Rx (standalone) — additions on top of the shared styles.css. */
 
 /* Bigger tap targets and simpler data entry */
 :root { --field-h: 56px; }

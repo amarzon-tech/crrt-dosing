@@ -1,21 +1,16 @@
 /**
- * CRRT Dosing — configuration.
- * DRAFT=true until Dr D (Amar Damodar) signs off on medical content.
- * Do not remove the draft banner or set DRAFT to false without his sign-off
- * in his own words. The citrate calcium-ratio check and the citrate
- * precautions are shown only as draft content while DRAFT is true
- * (CITRATE_DRAFT_LABEL) and are covered by the same sign-off.
- * The Prismocitrate 18 rate, and counting that rate toward the dose,
- * are also draft content under that flag.
+ * CRRT Rx — configuration.
+ * Signed off by Dr D (Amar Damodar) on 14 Nov 2026 and published at his request.
+ * DRAFT=false. Educational CRRT prescribing tool for nephrologists.
  */
 (function (global) {
   "use strict";
 
-  const DRAFT = true;
+  const DRAFT = false;
   const DRAFT_BANNER = "Draft – not for clinical use until reviewed by Dr D";
   const CITRATE_DRAFT_LABEL = "Draft · awaiting Dr D sign-off";
-  const APP_NAME = "CRRT Dosing";
-  const APP_VERSION = "0.1.4-draft";
+  const APP_NAME = "CRRT Rx";
+  const APP_VERSION = "1.0.0";
   const SUPPORT_EMAIL = "amardamodar@gmail.com";
   const PUBLISHER = "Wellness Tech LLC";
 

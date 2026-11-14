@@ -7,10 +7,9 @@
   <meta name="theme-color" content="#1e63d6">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="CRRT">
-  <meta name="description" content="Draft clinician tool for CRRT dosing, heparin, and citrate precautions. Offline, no login, no data collection. Not for clinical use until reviewed by Dr D.">
-  <meta name="robots" content="noindex, nofollow">
-  <title>CRRT Dosing — Draft</title>
+  <meta name="apple-mobile-web-app-title" content="CRRT Rx">
+  <meta name="description" content="Educational CRRT prescribing tool for nephrologists. Effluent dose, heparin, and citrate precautions. Offline, no login, no data collection.">
+  <title>CRRT Rx</title>
   <link rel="manifest" href="./manifest.json">
   <link rel="icon" type="image/png" href="./icons/favicon.png">
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
@@ -18,14 +17,12 @@
   <link rel="stylesheet" href="./css/standalone.css">
 </head>
 <body>
-  <div class="draft-banner" id="draft-banner" role="status">Draft – not for clinical use until reviewed by Dr D</div>
-
   <header class="top">
     <div class="top-row">
       <div>
         <p class="eyebrow">Wellness Tech LLC</p>
-        <h1>CRRT Dosing</h1>
-        <p class="subhead">Effluent dose, heparin, and citrate precautions. Offline · no data collected.</p>
+        <h1>CRRT Rx</h1>
+        <p class="subhead">Educational CRRT prescribing tool for nephrologists</p>
       </div>
       <button class="icon-btn" id="theme-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
         <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
@@ -211,8 +208,6 @@
             <h2>Citrate anticoagulation precautions</h2>
             <button type="button" class="about-btn" data-about="citrate">Sources</button>
           </div>
-          <p class="draft-tag" id="cit-draft-tag">Draft · awaiting Dr D sign-off</p>
-
           <div class="citrate-calc" id="citrate-calc">
             <p class="compact-h">Prismocitrate 18 rate</p>
             <div class="grid-3 simple">
@@ -424,13 +419,12 @@
 
         <article class="card rx-card" id="rx-card">
           <div class="card-h rx-card-h">
-            <h2>Prescription <span class="h2-sub">draft</span></h2>
+            <h2>Prescription</h2>
             <div class="rx-actions no-print">
               <button type="button" class="rx-btn" id="c-rx-copy">Copy</button>
               <button type="button" class="rx-btn" id="c-rx-print">Print</button>
             </div>
           </div>
-          <p class="draft-tag" id="rx-draft-tag">Draft – not for clinical use until reviewed by Dr D</p>
           <div class="rx-sheet" id="c-rx-sheet"></div>
         </article>
 
@@ -457,12 +451,12 @@
   </div>
 
   <footer class="foot">
-    <p>Draft · Wellness Tech LLC · Support:
+    <p>Wellness Tech LLC · Support:
       <a href="mailto:amardamodar@gmail.com">amardamodar@gmail.com</a>.
       Works offline, with no login or ads, and never stores or sends your inputs.
       Every formula and source is listed in the About sheets and in
       <a href="./CONTENT_REVIEW.md">CONTENT_REVIEW.md</a>.
-      Not for clinical use until reviewed by Dr D. Follow your institution’s protocols.
+      For nephrologists. Educational use only; not a substitute for clinical judgment or your unit protocol.
     </p>
   </footer>
 

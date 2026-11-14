@@ -1,7 +1,7 @@
 {
-  "name": "CRRT Dosing",
-  "short_name": "CRRT",
-  "description": "Draft clinician tool for CRRT dosing, heparin, and citrate precautions. Not for clinical use until reviewed by Dr D. Offline, no login, no data collection.",
+  "name": "CRRT Rx",
+  "short_name": "CRRT Rx",
+  "description": "Educational CRRT prescribing tool for nephrologists. Effluent dose, heparin, and citrate precautions. Offline, no login, no data collection.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

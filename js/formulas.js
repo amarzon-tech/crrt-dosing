@@ -1,5 +1,5 @@
 /**
- * CRRT Dosing — pure formula implementations.
+ * CRRT Rx — pure formula implementations.
  * Every coefficient and target is taken from a cited primary source
  * (see CONTENT_REVIEW.md). No network, no storage. Inputs are not persisted.
  *

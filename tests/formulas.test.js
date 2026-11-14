@@ -1,5 +1,5 @@
 /**
- * Worked-example tests for CRRT Dosing formulas (standalone, no PD).
+ * Worked-example tests for CRRT Rx formulas (standalone, no PD).
  * Run: node tests/formulas.test.js
  * Every numeric expectation is either a direct rearrangement of a cited
  * equation or a published value (KDIGO ranges, Joannidis heparin regimen,
