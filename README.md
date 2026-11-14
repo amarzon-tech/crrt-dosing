@@ -8,15 +8,14 @@ Preview: https://amarzon-tech.github.io/crrt-dosing/
 
 ## What it is
 
-A static, offline progressive web app on one screen:
+A static, offline progressive web app in four steps (Back / Next and a step indicator):
 
 - No login, ads, analytics, or data collection. Inputs are never stored. `noindex`, robots disallow.
 - Simple data entry: one required field (weight); defaults pre-filled and labelled; numeric keypad; live results, no Calculate button.
-- **Dose:** weight, target (default 25 mL/kg/h), net UF (default 0), modality → suggested replacement / dialysate rates and prescribed dose.
-- **Filter check (optional):** blood flow, hematocrit, downtime → filtration fraction, minimum Qb for FF 25%, predilution-corrected and delivered dose.
-- **Heparin:** bolus 30 IU/kg and 7 IU/kg/h defaults (Joannidis 2007, as described in KDIGO 2012 §5.3), optional bag strength → units, units/h, mL/h.
-- **Citrate anticoagulation precautions:** a reference-protocol block from the Prismocitrate 18 trial (NCT05399537), plus supporting contraindications, monitoring, metabolic complications, and what to do if accumulation is suspected, cited to KDIGO 2012 §5.3 and published reviews; plus a total/ionized calcium ratio check (main flag: ratio >2.5). No citrate dose calculator. Trial values are a trial protocol, not a Bon Secours Richmond policy.
-- **Order sheet** (Copy / Print) built from those values, with blank write-ins for anything not calculated.
+- **Step 1 — Modality:** default CVVH post.
+- **Step 2 — Blood flow and weight:** common blood-flow chips (150, 200, 250, 300 mL/min) plus custom; then weight.
+- **Step 3 — Anticoagulant:** heparin, citrate, or none. Heparin calculator with **Bolus: Yes / No** (defaults 30 IU/kg bolus and 7 IU/kg/h, Joannidis 2007, as described in KDIGO 2012 §5.3). Citrate shows precautions, the Prismocitrate 18 (NCT05399537) reference-protocol block, and study predictors of accumulation risk (Schultheiß et al. 2012: lactate ≥3.4 mmol/L and prothrombin time ≤26%). No citrate dose calculator. Trial values are a trial protocol, not a Bon Secours Richmond policy.
+- **Step 4 — Optional variables and prescription:** target (default 25 mL/kg/h), net UF (default 0), hematocrit, downtime, filter check, calcium ratio check (main flag: ratio >2.5). The final output is one clean **prescription card, labeled as a draft** (Copy / Print): modality, blood flow, weight, dialysate / replacement / net UF rates, prescribed and delivered dose, and the anticoagulant with its settings. No electrolyte or bath composition is shown or recommended.
 
 Every statement, number and citation is listed for sign-off in [CONTENT_REVIEW.md](CONTENT_REVIEW.md).
 

@@ -8,7 +8,6 @@
 
   const FOOTER = "Draft – verify before use; clinical judgment required";
   const BLANK = "________________";
-  const BLANK_SHORT = "______";
   const PUBLISHER = "Wellness Tech LLC";
   const APP = "CRRT Dosing (draft)";
 
@@ -77,25 +76,13 @@
     ];
   }
 
-  function ffLine(ffPct, ffFlag) {
-    if (!isNum(ffPct)) return "Filtration fraction: " + BLANK;
-    let line = "Filtration fraction: " + fmt(ffPct, 1) + "%";
-    if (ffFlag === "warning") line += "  — WARNING (≥ 25%)";
-    else if (ffFlag === "caution") line += "  — CAUTION (≥ 20%)";
-    return line;
-  }
-
   function anticoagulationLines(opts) {
     const kind = (opts.anticoagulation || "").toLowerCase();
     const lines = [];
     if (kind === "citrate") {
-      // No citrate doses are calculated in this app. Write-in lines only;
-      // the institution's RCA protocol sets every value.
+      // No citrate doses or fluid composition are calculated in this app.
+      // Settings come from the institution's RCA protocol.
       lines.push("Anticoagulation: Regional citrate — per institutional protocol");
-      lines.push("  Citrate solution and rate: " + BLANK);
-      lines.push("  Post-filter ionized Ca target: " + BLANK);
-      lines.push("  Calcium replacement: " + BLANK);
-      lines.push("  Citrate monitoring: " + BLANK);
     } else if (kind === "heparin") {
       lines.push("Anticoagulation: Unfractionated heparin (pre-filter)");
       if (opts.heparinBolusGiven === false) {
@@ -123,16 +110,12 @@
       }
       if (opts.heparinApttTarget && String(opts.heparinApttTarget).trim()) {
         lines.push("  Target aPTT: " + String(opts.heparinApttTarget).trim());
-      } else {
-        lines.push("  Target aPTT: " + BLANK);
       }
       if (opts.heparinAntiXa && String(opts.heparinAntiXa).trim()) {
         lines.push("  Anti-Xa: " + String(opts.heparinAntiXa).trim());
       }
       if (opts.heparinMonitoring && String(opts.heparinMonitoring).trim()) {
         lines.push("  Monitoring: " + String(opts.heparinMonitoring).trim());
-      } else {
-        lines.push("  Monitoring: " + BLANK);
       }
     } else if (kind === "none") {
       lines.push("Anticoagulation: None");
@@ -146,6 +129,8 @@
   /**
    * Build a CRRT order-sheet as plain text from already-calculated values.
    * Missing numeric inputs become blank write-in lines. No defaults invented.
+ * No electrolyte or bath composition (K, Ca, bicarbonate) is included;
+ * fluid composition is the prescriber's choice and is not recommended here.
    *
    * @param {object} opts
    * @returns {{ title: string, date: string, text: string, footer: string }}
@@ -180,42 +165,22 @@
     const qpost = opts.qpostMlH;
     const totalRep =
       isNum(qpre) && isNum(qpost) ? qpre + qpost : isNum(qpre) ? qpre : isNum(qpost) ? qpost : null;
-    lines.push("Replacement fluid: " + qty(totalRep, "mL/h", 0));
+    lines.push("Replacement: " + qty(totalRep, "mL/h", 0));
     lines.push("  Pre-filter:  " + qty(isNum(qpre) ? qpre : null, "mL/h", 0));
     lines.push("  Post-filter: " + qty(isNum(qpost) ? qpost : null, "mL/h", 0));
     lines.push("Dialysate: " + qty(opts.qdMlH, "mL/h", 0));
-    lines.push("Net UF goal: " + qty(opts.qnetMlH, "mL/h", 0));
+    lines.push("Net UF: " + qty(opts.qnetMlH, "mL/h", 0));
+    lines.push("");
+
+    const delivered = isNum(opts.deliveredMlKgH)
+      ? opts.deliveredMlKgH
+      : opts.downtimeAdjustedMlKgH;
+    lines.push("Prescribed dose: " + qty(opts.prescribedMlKgH, "mL/kg/h", 1));
+    lines.push("Delivered dose: " + qty(delivered, "mL/kg/h", 1));
     lines.push("");
 
     anticoagulationLines(opts).forEach((l) => lines.push(l));
     lines.push("");
-
-    lines.push(ffLine(opts.ffPct, opts.ffFlag));
-    lines.push(
-      "Downtime-adjusted prescribed dose: " +
-        qty(opts.downtimeAdjustedMlKgH, "mL/kg/h", 1)
-    );
-    lines.push("");
-
-    lines.push("Fluid composition / bath (write in)");
-    lines.push(
-      "  Replacement:  K " +
-        BLANK_SHORT +
-        "    Ca " +
-        BLANK_SHORT +
-        "    Bicarbonate " +
-        BLANK_SHORT
-    );
-    lines.push(
-      "  Dialysate:    K " +
-        BLANK_SHORT +
-        "    Ca " +
-        BLANK_SHORT +
-        "    Bicarbonate " +
-        BLANK_SHORT
-    );
-    lines.push("");
-    lines.push("Monitoring labs: ________________________________");
 
     signatureLines().forEach((l) => lines.push(l));
 

@@ -56,9 +56,8 @@ const crrt = Rx.formatCrrtPrescription({
   qdMlH: 0,
   qnetMlH: 150,
   anticoagulation: "citrate",
-  ffPct: 18.2,
-  ffFlag: "",
-  downtimeAdjustedMlKgH: 22.5,
+  prescribedMlKgH: 25,
+  deliveredMlKgH: 22.5,
 });
 
 eq(crrt.title, "CRRT PRESCRIPTION", "CRRT title");
@@ -73,27 +72,24 @@ includes(crrt.text, "Weight: 80 kg", "weight");
 includes(crrt.text, "Modality: CVVH (post-filter replacement)", "CVVH post label");
 includes(crrt.text, "Target effluent dose: 25.0 mL/kg/h  (2,000 mL/h)", "target in both units");
 includes(crrt.text, "Blood flow (Qb): 150 mL/min", "blood flow");
-includes(crrt.text, "Replacement fluid: 1,850 mL/h", "total replacement");
+includes(crrt.text, "Replacement: 1,850 mL/h", "total replacement");
 includes(crrt.text, "Pre-filter:  0 mL/h", "pre split");
 includes(crrt.text, "Post-filter: 1,850 mL/h", "post split");
 includes(crrt.text, "Dialysate: 0 mL/h", "dialysate rate");
-includes(crrt.text, "Net UF goal: 150 mL/h", "net UF");
+includes(crrt.text, "Net UF: 150 mL/h", "net UF");
 includes(crrt.text, "Anticoagulation: Regional citrate — per institutional protocol", "citrate as entered, protocol-driven");
-includes(crrt.text, "  Citrate solution and rate: ________________", "citrate rate is a write-in");
-includes(crrt.text, "  Post-filter ionized Ca target: ________________", "post-filter iCa target is a write-in");
-includes(crrt.text, "  Calcium replacement: ________________", "calcium replacement is a write-in");
-includes(crrt.text, "  Citrate monitoring: ________________", "citrate monitoring is a write-in");
+excludes(crrt.text, "Citrate solution", "no citrate solution write-in");
+excludes(crrt.text, "Calcium replacement", "no calcium-replacement line on the prescription card");
 excludes(crrt.text, "mmol/h", "no citrate dose is invented");
 excludes(crrt.text, "ACD-A", "no citrate solution is invented");
 excludes(crrt.text, "0.35", "no iCa target is invented");
-includes(crrt.text, "Filtration fraction: 18.2%", "FF value");
-excludes(crrt.text, "CAUTION", "no FF caution below 20%");
-excludes(crrt.text, "WARNING", "no FF warning below 25%");
-includes(crrt.text, "Downtime-adjusted prescribed dose: 22.5 mL/kg/h", "downtime-adjusted dose");
-includes(crrt.text, "Fluid composition / bath (write in)", "bath header");
-includes(crrt.text, "Replacement:  K ______    Ca ______    Bicarbonate ______", "blank replacement bath");
-includes(crrt.text, "Dialysate:    K ______    Ca ______    Bicarbonate ______", "blank dialysate bath");
-includes(crrt.text, "Monitoring labs: ________________________________", "blank labs");
+includes(crrt.text, "Prescribed dose: 25.0 mL/kg/h", "prescribed dose");
+includes(crrt.text, "Delivered dose: 22.5 mL/kg/h", "delivered dose");
+excludes(crrt.text, "Filtration fraction", "FF stays on the filter-check, not the prescription card");
+excludes(crrt.text, "Fluid composition", "no fluid composition section");
+excludes(crrt.text, "bath", "no bath write-in");
+excludes(crrt.text, "Bicarbonate", "no bicarbonate composition");
+excludes(crrt.text, "Monitoring labs", "no monitoring-labs line on the prescription card");
 includes(crrt.text, "Prescriber: ________________", "blank signature");
 includes(crrt.text, "Date/time: ________________", "blank sign date");
 includes(crrt.text, FOOTER, "required footer");
@@ -124,17 +120,10 @@ const hdf = Rx.formatCrrtPrescription({
   qnetMlH: 100,
 });
 includes(hdf.text, "Modality: CVVHDF", "HDF modality on sheet");
-includes(hdf.text, "Replacement fluid: 1,000 mL/h", "HDF replacement total");
+includes(hdf.text, "Replacement: 1,000 mL/h", "HDF replacement total");
 includes(hdf.text, "Pre-filter:  500 mL/h", "HDF pre");
 includes(hdf.text, "Post-filter: 500 mL/h", "HDF post");
 includes(hdf.text, "Dialysate: 1,000 mL/h", "HDF dialysate");
-
-/* ── filtration fraction flags ───────────────────────────────────────────── */
-section("Filtration fraction caution flags");
-const ffCaut = Rx.formatCrrtPrescription({ date: DATE, ffPct: 20, ffFlag: "caution" });
-includes(ffCaut.text, "Filtration fraction: 20.0%  — CAUTION (≥ 20%)", "caution at 20%");
-const ffWarn = Rx.formatCrrtPrescription({ date: DATE, ffPct: 26.4, ffFlag: "warning" });
-includes(ffWarn.text, "Filtration fraction: 26.4%  — WARNING (≥ 25%)", "warning at 25%");
 
 /* ── anticoagulation as entered; no invented default ─────────────────────── */
 section("Anticoagulation as entered");
@@ -153,8 +142,8 @@ const acHepBlank = Rx.formatCrrtPrescription({ date: DATE, anticoagulation: "hep
 includes(acHepBlank.text, "Anticoagulation: Unfractionated heparin (pre-filter)", "heparin as entered, pre-filter");
 includes(acHepBlank.text, "  Bolus: ________________", "bolus blank when not calculated");
 includes(acHepBlank.text, "  Infusion: ________________", "infusion blank when not calculated");
-includes(acHepBlank.text, "  Target aPTT: ________________", "aPTT blank when not entered");
-includes(acHepBlank.text, "  Monitoring: ________________", "monitoring blank when not entered");
+excludes(acHepBlank.text, "Target aPTT:", "no aPTT line unless entered");
+excludes(acHepBlank.text, "Monitoring:", "no monitoring line unless entered");
 excludes(acHepBlank.text, "Anti-Xa:", "no anti-Xa line unless entered");
 excludes(acHepBlank.text, "mL/h", "no mL/h when concentration not entered");
 
@@ -199,12 +188,19 @@ includes(empty.text, "Weight: ________________", "blank weight");
 includes(empty.text, "Modality: ________________", "blank modality");
 includes(empty.text, "Target effluent dose: ________________", "blank target");
 includes(empty.text, "Blood flow (Qb): ________________", "blank Qb");
-includes(empty.text, "Downtime-adjusted prescribed dose: ________________", "blank delivered");
-includes(empty.text, "Filtration fraction: ________________", "blank FF");
-// Bath and labs are always write-in, never filled with invented numbers
-isTrue((empty.text.match(/K ______/g) || []).length === 2, "two blank K lines");
+includes(empty.text, "Prescribed dose: ________________", "blank prescribed");
+includes(empty.text, "Delivered dose: ________________", "blank delivered");
+excludes(empty.text, "Filtration fraction", "FF is not on the prescription card");
+excludes(empty.text, "Fluid composition", "no bath header when empty");
 excludes(empty.text, "K 4", "does not invent a K bath");
 excludes(empty.text, "Bicarbonate 25", "does not invent a bicarbonate bath");
+excludes(empty.text, "Bicarbonate ______", "no bicarbonate write-in");
+
+
+section("No fluid composition on the prescription card");
+excludes(crrt.text, "Fluid composition / bath", "no bath section on a filled card");
+excludes(crrt.text, "    Ca ", "no Ca bath write-in");
+excludes(Rx.formatCrrtPrescription({ date: DATE, anticoagulation: "heparin" }).text, "Bicarbonate", "heparin card has no bicarbonate line");
 
 section("No PD in the standalone app");
 isTrue(Rx.formatPdPrescription === undefined, "no PD order sheet");

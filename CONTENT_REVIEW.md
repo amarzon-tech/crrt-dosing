@@ -1,6 +1,6 @@
 # Content review — CRRT Dosing (standalone draft)
 
-**App:** CRRT Dosing, v0.1.1-draft (standalone; split from CRRT & PD Dosing, which keeps the PD content)
+**App:** CRRT Dosing, v0.1.2-draft (standalone; split from CRRT & PD Dosing, which keeps the PD content)
 **Publisher:** Wellness Tech LLC
 **For:** Dr Amar Damodar (Dr D)
 **Status:** `DRAFT=true`. The slim banner reads “Draft – not for clinical use until reviewed by Dr D.” The citrate card also shows “Draft · awaiting Dr D sign-off” from the same flag. Do not set `DRAFT` to false, or remove the banner, without Dr D’s sign-off in his own words.
@@ -13,16 +13,23 @@ Please tick each item after reviewing the equation or statement, the citation, a
 
 ## Data entry (kept simple, per Dr D)
 
-All on one screen, no Calculate button, no multi-step forms. Results update as you type. Every number field opens the numeric keypad (`inputmode="decimal"` or `"numeric"`). Inputs are 56 px tall; chips are 48 px. Defaults are pre-filled and labelled “default …”; nothing is hidden.
+Step-by-step flow (added 14 Nov 2026 after Dr D asked to replace the single screen), with Back and Next and a step indicator. No Calculate button. Results update as you type and are shown on the last step as a live prescription card. Every number field opens the numeric keypad (`inputmode="decimal"` or `"numeric"`). Inputs are 56 px tall; chips are 48 px. Defaults are pre-filled and labelled “default …”.
 
-| Calculator | Number fields | Required | Pre-filled defaults | Taps |
+1. **Modality** — chips; default CVVH post. A 50% split slider appears only for CVVH mixed / CVVHDF (default 50%, not a guideline target).
+2. **Blood flow, then weight.** Blood flow is a choice of common values (150, 200, 250, 300 mL/min) plus a custom entry. It is optional and is used for filtration fraction and the predilution correction. Weight is required.
+3. **Anticoagulant** — Heparin, Citrate, or None. Heparin shows the heparin calculator with a **Bolus: Yes / No** toggle (default Yes). Citrate shows the citrate precautions card.
+4. **Optional variables and the prescription.** Target dose (default 25 mL/kg/h), net UF (default 0), hematocrit, downtime, filter check, and the calcium ratio check, with live results. The final output is one clean **prescription card, labeled as a draft**, covering modality, blood flow, weight, dialysate / replacement / net UF rates, prescribed and delivered dose, and the anticoagulant with its settings. Electrolyte or bath composition (K, Ca, bicarbonate) is left out; it is the prescriber’s choice, and the app does not recommend fluid composition.
+
+**Dr D confirmed defaults Nov 14 2026:** prescribed target **25 mL/kg/h**, modality **CVVH post**, heparin bolus **30 IU/kg** and infusion **7 IU/kg/h**. This confirms those starting values only. It is not a sign-off of the app, the new step flow, or other sections. `DRAFT` stays true.
+
+| Step | Number fields | Required | Pre-filled defaults | Taps |
 |---|---|---|---|---|
-| Dose (rates, prescribed dose) | 3 | Weight only | Target 25 mL/kg/h, Net UF 0 mL/h | Modality chip (default CVVH post); a 50% split slider appears only for CVVH mixed / CVVHDF |
-| Filter check (optional) | 3 | none | none (blood flow, hematocrit, downtime blank) | — |
-| Heparin | 3 (uses weight from Dose) | none beyond weight | Bolus 30 IU/kg, infusion 7 IU/kg/h; bag strength blank | Heparin chip; Give bolus / No bolus |
-| Calcium ratio check (citrate) | 2 | both | none | Unit toggles (total Ca mg/dL ↔ mmol/L; ionized Ca mmol/L ↔ mg/dL) |
+| 1. Modality | — | a modality (pre-selected) | CVVH post | Modality chip; a 50% split slider appears only for CVVH mixed / CVVHDF |
+| 2. Blood flow & weight | 2 (custom blood flow only if chosen; weight) | Weight only | none for blood flow or weight | Blood-flow chips 150 / 200 / 250 / 300 mL/min + Custom |
+| 3. Heparin (if chosen) | 3 (uses weight from step 2) | none beyond weight | Bolus 30 IU/kg, infusion 7 IU/kg/h; bag strength blank | Heparin chip; **Bolus: Yes / No** (default Yes; No hides and zeroes the bolus) |
+| 4. Optional + prescription | target, net UF, hematocrit, downtime, calcium ratio (2) | none (defaults cover a basic dose) | Target 25 mL/kg/h, Net UF 0 mL/h; others blank | Unit toggles on the calcium ratio (total Ca mg/dL ↔ mmol/L; ionized Ca mmol/L ↔ mg/dL) |
 
-So a basic dose needs **1 entry** (weight). Heparin needs **0 extra entries** with defaults. The calcium ratio needs **2** lab values. Removed from the earlier draft to simplify: the 3-field 24-h fluid-balance planner (net UF is entered directly as mL/h), the “edit each rate” check mode, the free-text heparin aPTT / anti-Xa / monitoring fields, and the citrate infusion-rate helper (see “Not included”).
+So a basic dose still needs **1 entry** (weight). Heparin needs **0 extra entries** with defaults, or Bolus: No. The calcium ratio needs **2** lab values. Removed from the earlier draft to simplify: the 3-field 24-h fluid-balance planner (net UF is entered directly as mL/h), the “edit each rate” check mode, the free-text heparin aPTT / anti-Xa / monitoring fields, the citrate infusion-rate helper (see “Not included”), and bath / fluid-composition write-ins on the prescription card.
 
 - [ ] Sign-off: data-entry design and defaults
 
@@ -118,11 +125,11 @@ Neri distinguishes **filtration fraction** (ideally below 30%) from **concentrat
 
 ## Unfractionated heparin calculator (CRRT)
 
-Appears when **Heparin** is selected. Computes bolus in units and infusion in units/h (and mL/h if a bag strength is entered) from the weight in the Dose card. **Arithmetic only — no new pharmacologic model.** Three number fields: bolus IU/kg (default 30), infusion IU/kg/h (default 7), bag strength units/mL (optional, blank). Plus a Give bolus / No bolus toggle. The free-text aPTT, anti-Xa and monitoring fields from the earlier draft were removed to keep data entry simple; the order sheet keeps blank write-in lines for Target aPTT and Monitoring. The 40–45 second aPTT from Joannidis 2007 is shown in the on-screen note.
+Appears when **Heparin** is selected. Computes bolus in units and infusion in units/h (and mL/h if a bag strength is entered) from the weight in the Dose card. **Arithmetic only — no new pharmacologic model.** Three number fields: bolus IU/kg (default 30), infusion IU/kg/h (default 7), bag strength units/mL (optional, blank). Plus a **Bolus: Yes / No** toggle (default Yes). No hides the bolus field and zeroes the bolus output. The free-text aPTT, anti-Xa and monitoring fields from the earlier draft were removed to keep data entry simple; the order sheet keeps blank write-in lines for Target aPTT and Monitoring. The 40–45 second aPTT from Joannidis 2007 is shown in the on-screen note.
 
 **Starting values (editable), from the UFH arm of the second trial described in KDIGO AKI 2012, §5.3 rationale**
 
-- Bolus **30 IU/kg** (optional; a no-bolus toggle is provided so a unit protocol can omit it — not a cited preferred regimen)
+- Bolus **30 IU/kg** (optional; **Bolus: Yes / No**, default Yes, so a unit protocol can omit it — not a cited preferred regimen). **Dr D confirmed defaults Nov 14 2026** (30 IU/kg bolus and 7 IU/kg/h infusion, and the 25 mL/kg/h / CVVH post dose defaults).
 - Pre-filter infusion **7 IU/kg/h**
 - Target aPTT **40–45 seconds**
 
@@ -167,6 +174,8 @@ Educational text only. **No citrate or calcium dose is calculated.** The only ci
 5. Also named on screen: Link A, et al. *Crit Care.* 2012;16:R97 ([doi:10.1186/cc11363](https://doi.org/10.1186/cc11363)), ratio ≥ 2.4 predicted 28-day mortality (abstract read). Meier-Kriesche HU, et al. *Crit Care Med.* 2001;29:748-752 (PMID 11373461), early report of raised ratio with citrate CVVHD, all in liver failure (abstract read; the abstract gives no numeric cut-off; full text not checked).
 6. **Reference protocol (added after Dr D said “Use that one”):** Safety Evaluation of Prismocitrate 18 in Patients Receiving CRRT. ClinicalTrials.gov identifier: [NCT05399537](https://clinicaltrials.gov/study/NCT05399537). Official title: “A Safety Evaluation of Prismocitrate 18 in Patients Receiving Continuous Renal Replacement Therapy (CRRT).” Sponsor: Vantive Health LLC (collaborator Baxter Healthcare Corporation). Record retrieved from `https://clinicaltrials.gov/api/v2/studies/NCT05399537` on 14 Nov 2026 (America/New_York). Last update posted 5 Oct 2026; status verified September 2026; overall status recruiting; no results posted; Phase 3. A Bon Secours Mercy Health–Springfield Regional Medical Center (Springfield, Ohio) site is listed; the record now marks that site **terminated**. This is **not** a Bon Secours Richmond policy.
 
+7. **Predictors of citrate accumulation risk (added after Dr D asked to show them, 14 Nov 2026):** Schultheiß C, Saugel B, Phillip V, et al. Continuous venovenous hemodialysis with regional citrate anticoagulation in patients with liver failure: a prospective observational study. *Crit Care.* 2012;16(4):R162. [doi:10.1186/cc11485](https://doi.org/10.1186/cc11485), PMID 22913794, PMC3580752. Open-access paper read in full on 14 Nov 2026 from https://ccforum.biomedcentral.com/articles/10.1186/cc11485. This is the observational study that review [4] cites for these predictors. **No INR cut-off is reported** in the paper (prothrombin time is given as a percentage only); no conversion from PT % to INR was made.
+
 ### Disclaimer (top of card)
 
 | On-screen statement | Source |
@@ -195,7 +204,7 @@ Labeled on screen as **“Reference protocol: Prismocitrate 18 (NCT05399537)”*
 | Do not use if: refractory shock with lactic acidosis (lactate >4 mmol/L) | “Patients with refractory shock and associated lactic acidosis (lactate >4 mmol/L)” |
 | Do not use if: systemic ionized calcium outside 1.0–1.3 mmol/L, unless first corrected into that range | Same exclusion quote as the systemic range row above. |
 
-*In the record but not shown on the card (judgment):* the full acute-liver-failure definition (on the Sources sheet instead); “or outside of the laboratory reference range”; symptom examples in the primary outcomes (tetany/spasms, seizures, prolonged or shortened QT, mental-status changes, refractory acidosis); other study eligibility (age ≥18, expected survival of at least 24 hours, pregnancy or breastfeeding, concurrent interventional study, contraindication to heparin / increased hemorrhage risk); PrisMax Version 3.x / calcium line accessory; treatment period up to 10 days; current recruiting status and lack of posted results (mentioned briefly as Phase 3 / investigational). The earlier “available but not shown” lactate ≥3.4 mmol/L and prothrombin time ≤26% predictors from [4] remain off the card; they are not in this trial record, and [3] still says no lactate threshold has been established.
+*In the record but not shown on the card (judgment):* the full acute-liver-failure definition (on the Sources sheet instead); “or outside of the laboratory reference range”; symptom examples in the primary outcomes (tetany/spasms, seizures, prolonged or shortened QT, mental-status changes, refractory acidosis); other study eligibility (age ≥18, expected survival of at least 24 hours, pregnancy or breastfeeding, concurrent interventional study, contraindication to heparin / increased hemorrhage risk); PrisMax Version 3.x / calcium line accessory; treatment period up to 10 days; current recruiting status and lack of posted results (mentioned briefly as Phase 3 / investigational). The lactate ≥3.4 mmol/L and prothrombin time ≤26% predictors are now on the card in a separate “Predictors of citrate accumulation risk” block, cited to Schultheiß et al. 2012 [7] (the observational study reported by [4]). They are not in this trial record and are not shown as trial exclusions. [3] still says no lactate threshold has been established; that sentence remains as supporting text.
 
 - [ ] Sign-off: Prismocitrate 18 reference-protocol block and the values taken from NCT05399537
 
@@ -210,7 +219,7 @@ Labeled on screen as **“Reference protocol: Prismocitrate 18 (NCT05399537)”*
 | Some poisonings that block mitochondria (e.g. metformin, paracetamol, propofol) may lower citrate metabolism. | [3] “some commonly encountered intoxications (biguanides (e.g., metformin), cyclosporine, paracetamol, trichloroethylene, or propofol) can lead to mitochondrial blockage and decrease citrate metabolization capacity.” |
 | Large transfusions of citrated blood products add citrate load. | [4] “liberal administration of citrate-containing blood products … may significantly increase the citrate metabolic load.” |
 
-*Available but not shown (for your decision):* [4] reports that, in liver failure, “a prothrombin time ≤26% … and elevation of the serum lactate to ≥3.4 mmol/L seem to be the best predictors of RCA-related metabolic complications” (from one observational study it cites). Not put on screen, because [3] says no lactate threshold has been established.
+*Now shown, as study predictors (not trial exclusions):* After Dr D asked for them on 14 Nov 2026, the card includes a “Predictors of citrate accumulation risk” block. The primary source is Schultheiß et al. 2012 [7]: in patients with liver failure on CVVHD with RCA, baseline serum lactate ≥3.4 mmol/L and prothrombin time ≤26% predicted a total-to-ionized calcium ratio ≥2.5 (sensitivity 86% for both; specificity 86% for lactate, 92% for prothrombin time). The card states these are study predictors, not trial exclusions and not a unit protocol, and notes that the study reported prothrombin time as a percentage, not as INR (no INR cut-off was published; none was invented). Review [4] also reports these thresholds (the earlier “available but not shown” item). The statement from [3] that no universal lactate cut-off for avoiding citrate has been established is kept on the card.
 
 - [ ] Sign-off: contraindications and cautions
 
@@ -268,7 +277,7 @@ The main flag is now **strictly greater than 2.5**, to match the trial wording (
 
 ### Citrate on the order sheet
 
-If Citrate is chosen, the sheet says “Anticoagulation: Regional citrate — per institutional protocol” with blank write-in lines for: citrate solution and rate, post-filter ionized Ca target, calcium replacement, citrate monitoring. No citrate number is printed.
+If Citrate is chosen, the prescription card says “Anticoagulation: Regional citrate — per institutional protocol.” No citrate number is printed, and there are no write-in lines for solution, rate, or calcium replacement, so the card does not recommend a fluid or bath composition.
 
 - [ ] Sign-off: citrate order-sheet lines
 
@@ -276,7 +285,7 @@ If Citrate is chosen, the sheet says “Anticoagulation: Regional citrate — pe
 
 ## Order sheet (formatting only)
 
-Same format as CRRT & PD Dosing’s CRRT sheet: weight, modality, target dose (mL/kg/h and mL/h = target × weight), blood flow, replacement (pre/post), dialysate, net UF goal, anticoagulation as chosen, filtration fraction with the 20% caution / 25% warning flags, downtime-adjusted dose, and blank write-ins for bath (K / Ca / bicarbonate), monitoring labs, patient, MRN, prescriber. Footer: “Draft – verify before use; clinical judgment required.” No anticoagulant is pre-selected. Heparin lines show bolus and infusion from the calculator; Target aPTT and Monitoring stay blank write-ins.
+The last step’s final output is one clean **prescription card, labeled as a draft**. It covers: weight, modality, blood flow, target effluent dose, replacement (pre/post rates), dialysate rate, net UF, prescribed dose, delivered dose, and the anticoagulant with its settings (heparin: bolus Yes/No with units and infusion units/h; citrate: “per institutional protocol,” with no invented rate). Patient, MRN, and prescriber stay as blank write-ins. Footer: “Draft – verify before use; clinical judgment required.” No anticoagulant is pre-selected. Filtration fraction stays on the optional filter-check, not on the prescription card. **Electrolyte or bath composition (K, Ca, bicarbonate) is omitted**; it is the prescriber’s choice, and the app does not recommend fluid composition.
 
 - [ ] Sign-off: order sheet
 
@@ -289,6 +298,7 @@ Same format as CRRT & PD Dosing’s CRRT sheet: weight, modality, target dose (m
 - No 24-h fluid-balance planner (net UF entered directly).
 - No 0.93 plasma-water correction. No assumed insensible losses. No filter-efficiency coefficient.
 - No default heparin bag strength, monitoring interval, or UFH anti-Xa.
+- No electrolyte or bath composition (K, Ca, bicarbonate) on the prescription card, and no recommended fluid composition.
 
 ---
 
@@ -299,6 +309,6 @@ Same format as CRRT & PD Dosing’s CRRT sheet: weight, modality, target dose (m
 3. **Post-filter and systemic iCa.** Primary displayed values are now the trial’s post-filter **0.25–0.35 mmol/L** and the trial’s normal physiologic / pre-start range **1.0–1.3 mmol/L**, plus safety cut-offs **<0.9** and **>1.4 mmol/L**. The record does not separately state a during-therapy systemic titration target; the card labels 1.0–1.3 as the trial’s normal physiologic range. Review ranges (0.2–0.35 and 0.3–0.4 mmol/L; “physiological / normal range”) stay as supporting sources, with “use your protocol’s range”.
 4. **Monitoring intervals** (every 6 h; 4–6 h; 2-hourly at start if at risk) are shown as what the reviews describe, with “timing per protocol”. The trial record does not give a monitoring interval, so none was invented.
 5. **Liver failure wording.** The trial block lists acute liver failure and acute-on-chronic liver failure with Child-Pugh >10 as exclusions. Below that, KDIGO 2012 still calls severe liver failure a major contraindication, and the 2012–2017 reviews still say citrate can be used with dose reduction and closer monitoring. Both layers are shown.
-6. **Lactate.** The trial exclusion **lactate >4 mmol/L** (with refractory shock) is now shown in the reference-protocol block. The reviews’ statement that no universal lactate cut-off has been established is kept as supporting text. The earlier “available but not shown” lactate ≥3.4 mmol/L and prothrombin time ≤26% predictors from [4] remain off the card.
+6. **Lactate and PT predictors.** The trial exclusion **lactate >4 mmol/L** (with refractory shock) remains in the reference-protocol block. The reviews’ statement that no universal lactate cut-off has been established is kept as supporting text. The lactate ≥3.4 mmol/L and prothrombin time ≤26% predictors are now on the card, presented as predictors of citrate accumulation risk from Schultheiß et al. 2012 [7] (the observational study cited by review [4]), not as trial exclusions and not as a Bon Secours policy. The open-access paper was read in full on 14 Nov 2026; the numbers match the Results and Conclusions. The study does not report an INR cut-off, so prothrombin time is shown as ≤26% as published (no conversion was made).
 7. FF thresholds, plasma-water factor, 50% default splits, and heparin defaults: same as the earlier draft (sections above).
 8. **Bon Secours.** Dr D asked to check the Bon Secours citrate protocol, then said “Use that one” after being told the public record is the Prismocitrate 18 trial (a Springfield, Ohio Bon Secours Mercy Health site, now marked terminated). The card states clearly that these values are a trial protocol, not a Bon Secours Richmond policy.

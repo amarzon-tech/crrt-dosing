@@ -33,6 +33,7 @@
     if (state) el.classList.add(state);
   }
   function chipState(el, state, text) {
+    if (!el) return;
     el.className = "status-chip " + (state || "info");
     el.textContent = text;
   }
@@ -95,18 +96,29 @@
   });
 
   let anticoagulation = "";
+  function syncAnticoagPanels() {
+    const hep = anticoagulation === "heparin";
+    const cit = anticoagulation === "citrate";
+    $("c-heparin-block").classList.toggle("hidden", !hep);
+    $("citrate-card").classList.toggle("hidden", !cit);
+    $("ac-none-note").classList.toggle("hidden", anticoagulation !== "");
+  }
   bindChips("c-ac", (btn) => {
     anticoagulation = btn.dataset.ac;
-    $("c-heparin-block").classList.toggle("hidden", anticoagulation !== "heparin");
-    $("c-citrate-pointer").classList.toggle("hidden", anticoagulation !== "citrate");
-    $("ac-none-note").classList.toggle("hidden", anticoagulation !== "");
+    syncAnticoagPanels();
     recalc();
   });
 
   let heparinGiveBolus = true;
+  function syncHeparinBolusUi() {
+    const on = heparinGiveBolus;
+    $("c-hep-bolus-wrap").classList.toggle("hidden", !on);
+    if ($("c-hep-bolus-metric")) $("c-hep-bolus-metric").classList.toggle("hidden", !on);
+    if ($("c-hep-metrics")) $("c-hep-metrics").classList.toggle("two", !on);
+  }
   bindChips("c-hep-bolus-on", (btn) => {
     heparinGiveBolus = btn.dataset.bolus === "yes";
-    $("c-hep-bolus-wrap").classList.toggle("hidden", !heparinGiveBolus);
+    syncHeparinBolusUi();
     recalc();
   });
 
@@ -282,6 +294,9 @@
     chipState($("dock-chip"), chip[0], chip[1]);
     setText("dock-v", heroVal !== null ? fmt(heroVal, 1) : "—");
     setText("dock-u", heroVal !== null ? "mL/kg/h" : "");
+    if ($("c-qb-recap")) {
+      $("c-qb-recap").textContent = F.isNum(qb) && qb > 0 ? fmt(qb, 0) + " mL/min" : "—";
+    }
 
     // Heparin
     let hep = { given: null, bolusUnits: null, bolusIuKg: null, unitsH: null, iuKgH: null, mlH: null };
@@ -367,6 +382,8 @@
         heparinInfusionMlH: hep.mlH,
         ffPct: F.isNum(ffPct) && Number.isFinite(ffPct) ? ffPct : null,
         ffFlag,
+        prescribedMlKgH: prescribed,
+        deliveredMlKgH: delivered,
         downtimeAdjustedMlKgH: delivered,
       });
       renderSheet($("c-rx-sheet"), rx);
@@ -608,17 +625,6 @@
     );
   }
 
-  function bathLineHtml(kind) {
-    return (
-      '<div class="rx-bath-line"><span class="kind">' +
-      esc(kind) +
-      ':</span>' +
-      '<span class="rx-writein"><span class="lbl">K</span><span class="line"></span></span>' +
-      '<span class="rx-writein"><span class="lbl">Ca</span><span class="line"></span></span>' +
-      '<span class="rx-writein"><span class="lbl">Bicarbonate</span><span class="line"></span></span></div>'
-    );
-  }
-
   function renderSheet(el, rx) {
     if (!el || !rx) return;
     const lines = rx.text.split("\n");
@@ -639,39 +645,14 @@
     }
 
     const rowBits = [];
-    let bathBits = "";
-    let labsHtml = "";
-    let inBath = false;
     body.forEach((line) => {
-      if (line === "Fluid composition / bath (write in)") {
-        inBath = true;
-        return;
-      }
-      if (inBath) {
-        if (line.startsWith("Monitoring labs:")) {
-          inBath = false;
-          labsHtml =
-            '<div class="rx-section" style="margin-top:14px">Monitoring labs</div>' +
-            '<div class="rx-writein" style="margin-top:4px"><span class="line"></span></div>';
-          return;
-        }
-        if (/Replacement:/.test(line)) bathBits += bathLineHtml("Replacement");
-        else if (/Dialysate:/.test(line)) bathBits += bathLineHtml("Dialysate");
-        return;
-      }
       if (line.trim() === "") return;
-      if (line.startsWith("Monitoring labs:")) {
-        labsHtml =
-          '<div class="rx-section" style="margin-top:14px">Monitoring labs</div>' +
-          '<div class="rx-writein" style="margin-top:4px"><span class="line"></span></div>';
-        return;
-      }
       rowBits.push(rowHtml(line));
     });
 
     el.innerHTML =
       '<div class="rx-head">' +
-      '<div class="rx-kicker">Wellness Tech LLC</div>' +
+      '<div class="rx-kicker">Wellness Tech LLC · Draft</div>' +
       '<div class="rx-title">' +
       esc(rx.title) +
       "</div>" +
@@ -685,12 +666,6 @@
       '<div class="rx-rows">' +
       rowBits.join("") +
       "</div>" +
-      (bathBits
-        ? '<div class="rx-section">Fluid composition / bath (write in)</div><div class="rx-bath">' +
-          bathBits +
-          "</div>"
-        : "") +
-      labsHtml +
       '<div class="rx-sig">' +
       '<div class="rx-writein"><span class="lbl">Prescriber</span><span class="line"></span></div>' +
       '<div class="rx-writein"><span class="lbl">Date/time</span><span class="line"></span></div>' +
@@ -740,6 +715,133 @@
   bindCopyPrint("c-rx-copy", "c-rx-sheet");
   $("c-rx-print").addEventListener("click", () => window.print());
 
+  /* ── blood-flow presets ── */
+  const QB_PRESETS = ["150", "200", "250", "300"];
+  function syncQbChipsFromInput() {
+    const raw = String(($("c-qb") && $("c-qb").value) || "").trim();
+    const wrap = $("c-qb-wrap");
+    const root = $("c-qb-presets");
+    if (!root) return;
+    let match = "";
+    if (raw === "") {
+      match = "";
+    } else if (QB_PRESETS.indexOf(raw) >= 0) {
+      match = raw;
+    } else {
+      match = "custom";
+    }
+    $$(".chip", root).forEach((c) => {
+      const on = match !== "" && c.dataset.qb === match;
+      c.classList.toggle("is-on", on);
+      c.setAttribute("aria-checked", on ? "true" : "false");
+    });
+    if (wrap) wrap.classList.toggle("hidden", match !== "custom" && QB_PRESETS.indexOf(raw) >= 0);
+    if (wrap && match === "custom") wrap.classList.remove("hidden");
+    if (wrap && raw === "") wrap.classList.add("hidden");
+  }
+  bindChips("c-qb-presets", (btn) => {
+    const v = btn.dataset.qb;
+    const wrap = $("c-qb-wrap");
+    if (v === "custom") {
+      wrap.classList.remove("hidden");
+      $("c-qb").focus();
+    } else {
+      wrap.classList.add("hidden");
+      $("c-qb").value = v;
+    }
+    recalc();
+  });
+  $("c-qb").addEventListener("input", syncQbChipsFromInput);
+
+  /* ── step flow ── */
+  let currentStep = 1;
+  const TOTAL_STEPS = 4;
+
+  function stepHint(msg) {
+    setText("step-hint", msg || "");
+  }
+
+  function canLeaveStep(n) {
+    if (n === 2) {
+      const wt = num($("c-wt"));
+      if (!(F.isNum(wt) && wt > 0)) {
+        stepHint("Enter the patient’s weight to continue.");
+        const msg = $("c-wt-msg");
+        if (msg) {
+          msg.textContent = "Weight is required, and must be more than 0.";
+          msg.classList.add("warn-text");
+        }
+        if ($("c-wt")) $("c-wt").focus();
+        return false;
+      }
+    }
+    if (n === 3) {
+      if (!anticoagulation) {
+        stepHint("Choose heparin, citrate, or none.");
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function showStep(n) {
+    currentStep = n;
+    stepHint("");
+    const wtMsg = $("c-wt-msg");
+    if (wtMsg && F.isNum(num($("c-wt"))) && num($("c-wt")) > 0) {
+      wtMsg.textContent = "Weight is used for the dose and heparin amounts. Results update as you type.";
+      wtMsg.classList.remove("warn-text");
+    }
+    $$(".step").forEach((s) => {
+      const on = Number(s.dataset.step) === n;
+      s.classList.toggle("is-on", on);
+    });
+    $$(".stepper-item", $("stepper")).forEach((btn) => {
+      const g = Number(btn.dataset.go);
+      btn.classList.toggle("is-on", g === n);
+      btn.classList.toggle("is-done", g < n);
+      if (g === n) btn.setAttribute("aria-current", "step");
+      else btn.removeAttribute("aria-current");
+    });
+    $("step-back").disabled = n === 1;
+    const next = $("step-next");
+    if (n === TOTAL_STEPS) {
+      next.hidden = true;
+    } else {
+      next.hidden = false;
+      next.textContent = "Next";
+    }
+    const y = document.querySelector("header.top");
+    window.scrollTo(0, 0);
+  }
+
+  $("step-back").addEventListener("click", () => {
+    if (currentStep > 1) showStep(currentStep - 1);
+  });
+  $("step-next").addEventListener("click", () => {
+    if (currentStep >= TOTAL_STEPS) return;
+    if (!canLeaveStep(currentStep)) return;
+    showStep(currentStep + 1);
+  });
+  $("stepper").addEventListener("click", (e) => {
+    const btn = e.target.closest(".stepper-item");
+    if (!btn) return;
+    const go = Number(btn.dataset.go);
+    if (!go || go === currentStep) return;
+    if (go < currentStep) {
+      showStep(go);
+      return;
+    }
+    for (let i = currentStep; i < go; i++) {
+      if (!canLeaveStep(i)) return;
+    }
+    showStep(go);
+  });
+
   /* first paint */
+  syncHeparinBolusUi();
+  syncAnticoagPanels();
+  syncQbChipsFromInput();
+  showStep(1);
   recalc();
 })();

@@ -38,6 +38,10 @@ isTrue(/<meta name="robots" content="noindex/.test(read("404.html")), "404.html 
 isTrue(/User-agent: \*\s+Disallow: \//.test(read("robots.txt")), "robots.txt disallows all");
 isTrue(/id="cit-draft-tag"/.test(html) && /CITRATE_DRAFT_LABEL/.test(app), "citrate content carries the draft label from config");
 isTrue(!fs.existsSync(path.join(root, "CNAME")), "no custom domain");
+const review = read("CONTENT_REVIEW.md");
+isTrue(/Dr D confirmed defaults Nov 14 2026/.test(review), "CONTENT_REVIEW records confirmed defaults");
+isTrue(!(/^- \[x\]/m).test(review) && !(/^- \[X\]/m).test(review), "no sign-off boxes ticked");
+isTrue(/DRAFT=true/.test(review), "review file still requires DRAFT=true");
 
 section("Offline, no login, no tracking, no stored data");
 shipped.forEach((f) => {
@@ -75,6 +79,39 @@ isTrue(/id="c-hep-bolus"[^>]*value="30"/.test(html), "heparin bolus prefilled 30
 isTrue(/id="c-hep-rate"[^>]*value="7"/.test(html), "heparin infusion prefilled 7");
 isTrue((html.match(/class="tag">default/g) || []).length >= 5, "defaults are labeled as defaults");
 isTrue(/document\.addEventListener\("input"/.test(app), "results update live on input");
+
+
+section("Step-by-step flow");
+["id=\"step-1\"", "id=\"step-2\"", "id=\"step-3\"", "id=\"step-4\""].forEach((k) =>
+  isTrue(html.includes(k), "has " + k)
+);
+isTrue(/id="step-back"/.test(html) && /id="step-next"/.test(html), "Back and Next buttons");
+isTrue(/id="stepper"/.test(html) && /data-go="1"/.test(html) && /data-go="4"/.test(html), "step indicator");
+isTrue(/data-qb="150"/.test(html) && /data-qb="200"/.test(html) && /data-qb="250"/.test(html) && /data-qb="300"/.test(html), "common blood-flow chips");
+isTrue(/data-qb="custom"/.test(html), "custom blood-flow option");
+isTrue(/function showStep/.test(app), "wizard showStep is implemented");
+isTrue(/Enter the patient.s weight/.test(app), "weight is required before leaving step 2");
+
+section("Heparin bolus Yes / No");
+isTrue(/id="c-hep-bolus-lbl">Bolus</.test(html), "plain Bolus label");
+isTrue(/data-bolus="yes">Yes</.test(html) && /data-bolus="no">No</.test(html), "Yes / No toggle");
+isTrue(!/>Give bolus</.test(html) && !/>No bolus</.test(html), "old Give bolus / No bolus labels are gone");
+isTrue(/syncHeparinBolusUi/.test(app) && /c-hep-bolus-metric/.test(app), "No bolus hides the bolus output");
+isTrue(/giveBolus: heparinGiveBolus/.test(app), "no-bolus flag is passed to the calculator");
+
+section("Citrate accumulation predictors (Schultheiß 2012)");
+["Predictors of citrate accumulation risk", "≥3.4 mmol/L", "≤26%", "Prothrombin time",
+ "not trial exclusions", "not as INR", "Schultheiß", "10.1186/cc11485", "R162"].forEach((k) =>
+  isTrue(html.includes(k), "predictors mention: " + k)
+);
+isTrue(!/INR \d/.test(html) && !/INR of/.test(html) && !/INR ≥/.test(html) && !/INR ≤/.test(html), "no invented INR cut-off");
+
+section("Draft prescription card, no fluid composition");
+isTrue(/id="rx-card"/.test(html) && /id="rx-draft-tag"/.test(html), "prescription card is labeled as a draft");
+const rxjs = read("js/prescription.js");
+isTrue(!(html + app + rxjs).includes("Fluid composition / bath"), "no bath composition section in the app");
+isTrue(!/Bicarbonate/.test(rxjs), "prescription formatter does not mention bicarbonate");
+isTrue(/Prescribed dose:/.test(rxjs) && /Delivered dose:/.test(rxjs), "prescription includes prescribed and delivered dose");
 
 section("Citrate precautions content");
 ["Follow your institution", "Severe liver failure", "shock liver", "lactic acidosis", "Post-filter ionized calcium",
