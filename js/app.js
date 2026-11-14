@@ -96,12 +96,25 @@
   });
 
   let anticoagulation = "";
+  function clearRatioResults() {
+    setText("c-ratio", "—");
+    setText("c-ratio-st", "—");
+    if ($("m-ratio")) metricState($("m-ratio"), "");
+    if ($("m-ratio-st")) metricState($("m-ratio-st"), "");
+  }
+
   function syncAnticoagPanels() {
     const hep = anticoagulation === "heparin";
     const cit = anticoagulation === "citrate";
     $("c-heparin-block").classList.toggle("hidden", !hep);
     $("citrate-card").classList.toggle("hidden", !cit);
     $("ac-none-note").classList.toggle("hidden", anticoagulation !== "");
+    const ratioCard = $("ratio-card");
+    if (ratioCard) {
+      ratioCard.classList.toggle("hidden", !cit);
+      ratioCard.setAttribute("aria-hidden", cit ? "false" : "true");
+      if (!cit) clearRatioResults();
+    }
   }
   bindChips("c-ac", (btn) => {
     anticoagulation = btn.dataset.ac;
@@ -348,37 +361,41 @@
       }
     }
 
-    // Calcium ratio
-    const tca = num($("c-tca"));
-    const ica = num($("c-ica"));
-    let ratioText = "—";
-    let stText = "—";
-    let ratioState = "";
-    if (F.isNum(tca) && F.isNum(ica) && tca > 0 && ica > 0) {
-      try {
-        const r = F.citrateCalciumRatio(tca, $("c-tca-u").dataset.unit, ica, $("c-ica-u").dataset.unit);
-        ratioText = fmt(r.ratio, 2);
-        if (r.ratio < 1) {
-          stText = "Total is lower than ionized — check units";
-          ratioState = "warn";
-        } else if (r.status === "accumulation") {
-          stText = "Above 2.5 — accumulation by the trial definition; follow protocol";
-          ratioState = "bad";
-        } else if (r.status === "consider") {
-          stText = "Above 2.25 — consider accumulation";
-          ratioState = "warn";
-        } else {
-          stText = "Not above 2.25 — watch the trend";
-          ratioState = "";
+    // Calcium ratio — only shown when citrate is the selected anticoagulant
+    if (anticoagulation !== "citrate") {
+      clearRatioResults();
+    } else {
+      const tca = num($("c-tca"));
+      const ica = num($("c-ica"));
+      let ratioText = "—";
+      let stText = "—";
+      let ratioState = "";
+      if (F.isNum(tca) && F.isNum(ica) && tca > 0 && ica > 0) {
+        try {
+          const r = F.citrateCalciumRatio(tca, $("c-tca-u").dataset.unit, ica, $("c-ica-u").dataset.unit);
+          ratioText = fmt(r.ratio, 2);
+          if (r.ratio < 1) {
+            stText = "Total is lower than ionized — check units";
+            ratioState = "warn";
+          } else if (r.status === "accumulation") {
+            stText = "Above 2.5 — accumulation by the trial definition; follow protocol";
+            ratioState = "bad";
+          } else if (r.status === "consider") {
+            stText = "Above 2.25 — consider accumulation";
+            ratioState = "warn";
+          } else {
+            stText = "Not above 2.25 — watch the trend";
+            ratioState = "";
+          }
+        } catch (e) {
+          ratioText = "—";
         }
-      } catch (e) {
-        ratioText = "—";
       }
+      setText("c-ratio", ratioText);
+      setText("c-ratio-st", stText);
+      metricState($("m-ratio"), ratioState);
+      metricState($("m-ratio-st"), ratioState);
     }
-    setText("c-ratio", ratioText);
-    setText("c-ratio-st", stText);
-    metricState($("m-ratio"), ratioState);
-    metricState($("m-ratio-st"), ratioState);
 
     // Order sheet
     if (RX) {

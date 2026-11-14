@@ -497,3 +497,12 @@ body { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
 
 #c-flow-metrics { margin-top: 10px !important; }
 #c-qnet-24h { margin-top: 6px; }
+
+#ratio-card .ratio-subhead {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+#ratio-card .ratio-subhead .h2-sub { font-weight: 600; }

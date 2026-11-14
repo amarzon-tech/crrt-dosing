@@ -140,6 +140,20 @@ isTrue(/formatDoseCheck/.test(rxjs) && /Prescribed dose:/.test(rxjs), "prescribe
 isTrue(/Weight:/.test(rxjs), "weight helper remains for the dose check");
 isTrue(app.includes('el.innerHTML = \'<div class="rx-rows machine">\'') || /rx-rows machine/.test(app), "sheet renderer is a two-column machine list");
 
+
+section("Calcium ratio only when citrate is selected");
+isTrue(/id="ratio-card"/.test(html), "ratio-card is present");
+isTrue(/id="ratio-card"[^>]*class="[^"]*\bhidden\b/.test(html) || /class="card hidden" id="ratio-card"/.test(html), "ratio-card starts hidden");
+isTrue(/id="ratio-card"[\s\S]*?Citrate monitoring/.test(html), "ratio card is labeled Citrate monitoring");
+isTrue(/id="ratio-card"[\s\S]*?Calcium ratio check/.test(html), "Calcium ratio check sits under Citrate monitoring");
+isTrue(/id="step-4"[\s\S]*?id="ratio-card"/.test(html), "ratio card is on step 4");
+isTrue(/syncAnticoagPanels/.test(app) && /ratio-card/.test(app), "anticoagulant sync controls the ratio card");
+isTrue(/anticoagulation === "citrate"/.test(app) && /ratioCard\.classList\.toggle\("hidden", !cit\)/.test(app), "ratio card is shown only for citrate");
+isTrue(/function clearRatioResults/.test(app), "clearRatioResults is defined");
+isTrue(/if \(!cit\) clearRatioResults/.test(app), "results are cleared when the card is hidden");
+isTrue(/anticoagulation !== "citrate"/.test(app) && /clearRatioResults\(\)/.test(app), "recalc does not show a ratio unless citrate is selected");
+isTrue(/setText\("c-ratio", "—"\)/.test(app) && /setText\("c-ratio-st", "—"\)/.test(app), "hidden ratio and reading are cleared to dashes");
+
 section("Citrate precautions content");
 ["Follow your institution", "Severe liver failure", "shock liver", "lactic acidosis", "Post-filter ionized calcium",
  "Systemic ionized calcium", "Total-to-ionized calcium ratio", "2.5", "Metabolic alkalosis", "Hypernatremia",
