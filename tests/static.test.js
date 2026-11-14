@@ -71,7 +71,7 @@ textInputs.forEach((i) => {
   isTrue(/inputmode="(decimal|numeric)"/.test(i), id + ": numeric keypad");
   isTrue(/aria-label="[^"]+"/.test(i), id + ": has a label");
 });
-isTrue(textInputs.length === 11, "11 number fields total (dose 3, filter check 3, heparin 3, calcium ratio 2); got " + textInputs.length);
+isTrue(textInputs.length === 11, "11 number fields total (step 2: qb/weight/hct/qnet; step 3 heparin 3; step 4 target/downtime + calcium 2); got " + textInputs.length);
 isTrue(!/>\s*Calculate\s*</i.test(html), "no Calculate button");
 isTrue(/id="c-target"[^>]*value="25"/.test(html), "target dose prefilled 25");
 isTrue(/id="c-qnet"[^>]*value="0"/.test(html), "net UF prefilled 0");
@@ -89,6 +89,16 @@ isTrue(/id="step-back"/.test(html) && /id="step-next"/.test(html), "Back and Nex
 isTrue(/id="stepper"/.test(html) && /data-go="1"/.test(html) && /data-go="4"/.test(html), "step indicator");
 isTrue(/data-qb="150"/.test(html) && /data-qb="200"/.test(html) && /data-qb="250"/.test(html) && /data-qb="300"/.test(html), "common blood-flow chips");
 isTrue(/data-qb="custom"/.test(html), "custom blood-flow option");
+
+isTrue(/Blood flow &amp; filtration/.test(html) || /Blood flow & filtration/.test(html), "step 2 is named Blood flow & filtration");
+isTrue(/id="step-2"[\s\S]*?id="c-hct"[\s\S]*?id="step-3"/.test(html), "hematocrit is on step 2");
+isTrue(/id="step-2"[\s\S]*?id="c-qnet"[\s\S]*?id="step-3"/.test(html), "net UF is on step 2");
+isTrue(!/id="step-4"[\s\S]*?id="c-hct"/.test(html), "hematocrit is not on step 4");
+isTrue(!/id="step-4"[\s\S]*?id="c-qnet"/.test(html), "net UF is not on step 4");
+isTrue(/id="c-qnet-24h"/.test(html) && /mL\/24 h/.test(html), "net UF has a 24-h equivalent helper");
+isTrue(/id="c-r-corr"/.test(html) && /Predilution-corrected dose/.test(html), "predilution-corrected dose is shown on step 2");
+isTrue(/id="c-ff"/.test(html) && /id="step-2"[\s\S]*?id="c-ff"/.test(html), "filtration fraction is on step 2");
+
 isTrue(/function showStep/.test(app), "wizard showStep is implemented");
 isTrue(/Enter the patient.s weight/.test(app), "weight is required before leaving step 2");
 
@@ -99,6 +109,18 @@ isTrue(!/>Give bolus</.test(html) && !/>No bolus</.test(html), "old Give bolus /
 isTrue(/syncHeparinBolusUi/.test(app) && /c-hep-bolus-metric/.test(app), "No bolus hides the bolus output");
 isTrue(/giveBolus: heparinGiveBolus/.test(app), "no-bolus flag is passed to the calculator");
 
+
+section("Trimmed anticoagulation step, details preserved");
+isTrue((html.match(/Details &amp; sources/g) || []).length >= 2, "heparin and citrate have Details & sources toggles");
+isTrue(/id="cit-details"/.test(html) && !/<details[^>]*id="cit-details"[^>]*open/.test(html), "citrate Details & sources starts collapsed");
+isTrue(/id="hep-details"/.test(html) && !/<details[^>]*id="hep-details"[^>]*open/.test(html), "heparin Details & sources starts collapsed");
+isTrue(/id="c-hep-target-line"/.test(html) && /Target aPTT 40–45 seconds/.test(html), "heparin one-line aPTT target is visible");
+isTrue(/id="citrate-compact"/.test(html) && /0\.25–0\.35 mmol\/L/.test(html) && /1\.0–1\.3 mmol\/L/.test(html), "citrate compact iCa targets");
+isTrue(/&gt;2\.5 = accumulation/.test(html), "compact Ca ratio flag");
+isTrue(/id="citrate-predictors-line"/.test(html) && /lactate ≥3\.4 mmol\/L or prothrombin time ≤26%/.test(html), "predictors are one line");
+isTrue(/Check first/.test(html) && /Follow your institution/.test(html), "long heparin and citrate explanations are still in the page");
+isTrue(/id="prismocitrate-protocol"/.test(html) && /id="citrate-predictors"/.test(html), "full protocol and predictors blocks are preserved");
+
 section("Citrate accumulation predictors (Schultheiß 2012)");
 ["Predictors of citrate accumulation risk", "≥3.4 mmol/L", "≤26%", "Prothrombin time",
  "not trial exclusions", "not as INR", "Schultheiß", "10.1186/cc11485", "R162"].forEach((k) =>
@@ -108,10 +130,15 @@ isTrue(!/INR \d/.test(html) && !/INR of/.test(html) && !/INR ≥/.test(html) && 
 
 section("Draft prescription card, no fluid composition");
 isTrue(/id="rx-card"/.test(html) && /id="rx-draft-tag"/.test(html), "prescription card is labeled as a draft");
+isTrue(/id="dose-check-card"/.test(html) && /id="dc-pres"/.test(html) && /id="dc-del"/.test(html), "dose check sits below the prescription");
 const rxjs = read("js/prescription.js");
 isTrue(!(html + app + rxjs).includes("Fluid composition / bath"), "no bath composition section in the app");
 isTrue(!/Bicarbonate/.test(rxjs), "prescription formatter does not mention bicarbonate");
-isTrue(/Prescribed dose:/.test(rxjs) && /Delivered dose:/.test(rxjs), "prescription includes prescribed and delivered dose");
+isTrue(/Citrate per unit protocol/.test(rxjs), "citrate machine line is protocol-only");
+isTrue(/Patient fluid removal:/.test(rxjs), "prescription lists patient fluid removal");
+isTrue(/formatDoseCheck/.test(rxjs) && /Prescribed dose:/.test(rxjs), "prescribed dose lives in the dose-check formatter");
+isTrue(/Weight:/.test(rxjs), "weight helper remains for the dose check");
+isTrue(app.includes('el.innerHTML = \'<div class="rx-rows machine">\'') || /rx-rows machine/.test(app), "sheet renderer is a two-column machine list");
 
 section("Citrate precautions content");
 ["Follow your institution", "Severe liver failure", "shock liver", "lactic acidosis", "Post-filter ionized calcium",

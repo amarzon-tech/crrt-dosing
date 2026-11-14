@@ -76,46 +76,32 @@
     ];
   }
 
+  function usedRate(n) {
+    return isNum(n) && n > 0;
+  }
+
   function anticoagulationLines(opts) {
     const kind = (opts.anticoagulation || "").toLowerCase();
     const lines = [];
     if (kind === "citrate") {
-      // No citrate doses or fluid composition are calculated in this app.
-      // Settings come from the institution's RCA protocol.
-      lines.push("Anticoagulation: Regional citrate — per institutional protocol");
+      // No citrate rates are calculated. Machine setting is protocol-driven only.
+      lines.push("Anticoagulation: Citrate per unit protocol");
     } else if (kind === "heparin") {
-      lines.push("Anticoagulation: Unfractionated heparin (pre-filter)");
+      lines.push("Anticoagulation: Heparin");
       if (opts.heparinBolusGiven === false) {
-        lines.push("  Bolus: none");
+        lines.push("Bolus: none");
       } else if (isNum(opts.heparinBolusUnits)) {
-        let b = "  Bolus: " + qty(opts.heparinBolusUnits, "units", 0);
-        if (isNum(opts.heparinBolusIuPerKg) && isNum(opts.weightKg)) {
-          b += "  (" + fmt(opts.heparinBolusIuPerKg, 0) + " IU/kg)";
-        }
-        lines.push(b);
+        lines.push("Bolus: " + qty(opts.heparinBolusUnits, "units", 0));
       } else {
-        lines.push("  Bolus: " + BLANK);
+        lines.push("Bolus: " + BLANK);
       }
       if (isNum(opts.heparinInfusionUnitsH)) {
-        let inf = "  Infusion: " + qty(opts.heparinInfusionUnitsH, "units/h", 0);
-        if (isNum(opts.heparinInfusionIuPerKgH)) {
-          inf += "  (" + fmt(opts.heparinInfusionIuPerKgH, 1) + " IU/kg/h)";
-        }
+        lines.push("Infusion: " + qty(opts.heparinInfusionUnitsH, "units/h", 0));
         if (isNum(opts.heparinInfusionMlH)) {
-          inf += "  (" + fmt(opts.heparinInfusionMlH, 1) + " mL/h)";
+          lines.push("Infusion pump: " + qty(opts.heparinInfusionMlH, "mL/h", 1));
         }
-        lines.push(inf);
       } else {
-        lines.push("  Infusion: " + BLANK);
-      }
-      if (opts.heparinApttTarget && String(opts.heparinApttTarget).trim()) {
-        lines.push("  Target aPTT: " + String(opts.heparinApttTarget).trim());
-      }
-      if (opts.heparinAntiXa && String(opts.heparinAntiXa).trim()) {
-        lines.push("  Anti-Xa: " + String(opts.heparinAntiXa).trim());
-      }
-      if (opts.heparinMonitoring && String(opts.heparinMonitoring).trim()) {
-        lines.push("  Monitoring: " + String(opts.heparinMonitoring).trim());
+        lines.push("Infusion: " + BLANK);
       }
     } else if (kind === "none") {
       lines.push("Anticoagulation: None");
@@ -127,10 +113,10 @@
   }
 
   /**
-   * Build a CRRT order-sheet as plain text from already-calculated values.
-   * Missing numeric inputs become blank write-in lines. No defaults invented.
- * No electrolyte or bath composition (K, Ca, bicarbonate) is included;
- * fluid composition is the prescriber's choice and is not recommended here.
+   * Machine-setting prescription: only values entered into the CRRT machine.
+   * Unused or zero dialysate / replacement lines are omitted. No bath
+   * composition, doses, weight, or notes. Fluid composition is the
+   * prescriber's choice and is not recommended here.
    *
    * @param {object} opts
    * @returns {{ title: string, date: string, text: string, footer: string }}
@@ -138,51 +124,28 @@
   function formatCrrtPrescription(opts) {
     opts = opts || {};
     const dateStr = formatLongDate(opts.date);
-    const lines = headerLines("CRRT PRESCRIPTION", dateStr);
+    const lines = [ "CRRT PRESCRIPTION", "Draft", "" ];
 
-    lines.push("Weight: " + qty(opts.weightKg, "kg", Number.isInteger(opts.weightKg) ? 0 : 1));
     const mod = modalityOrderLabel(opts.modality);
-    lines.push("Modality: " + (mod || BLANK));
-    lines.push("");
+    if (mod) lines.push("Modality: " + mod);
 
-    let targetLine = "Target effluent dose: ";
-    if (isNum(opts.targetMlKgH)) {
-      targetLine += fmt(opts.targetMlKgH, 1) + " mL/kg/h";
-      const mlH = isNum(opts.targetMlH)
-        ? opts.targetMlH
-        : isNum(opts.weightKg)
-          ? opts.targetMlKgH * opts.weightKg
-          : null;
-      if (isNum(mlH)) targetLine += "  (" + fmt(mlH, 0) + " mL/h)";
-    } else {
-      targetLine += BLANK;
+    if (usedRate(opts.qbMlMin)) {
+      lines.push("Blood flow: " + qty(opts.qbMlMin, "mL/min", 0));
     }
-    lines.push(targetLine);
-    lines.push("Blood flow (Qb): " + qty(opts.qbMlMin, "mL/min", 0));
-    lines.push("");
-
-    const qpre = opts.qpreMlH;
-    const qpost = opts.qpostMlH;
-    const totalRep =
-      isNum(qpre) && isNum(qpost) ? qpre + qpost : isNum(qpre) ? qpre : isNum(qpost) ? qpost : null;
-    lines.push("Replacement: " + qty(totalRep, "mL/h", 0));
-    lines.push("  Pre-filter:  " + qty(isNum(qpre) ? qpre : null, "mL/h", 0));
-    lines.push("  Post-filter: " + qty(isNum(qpost) ? qpost : null, "mL/h", 0));
-    lines.push("Dialysate: " + qty(opts.qdMlH, "mL/h", 0));
-    lines.push("Net UF: " + qty(opts.qnetMlH, "mL/h", 0));
-    lines.push("");
-
-    const delivered = isNum(opts.deliveredMlKgH)
-      ? opts.deliveredMlKgH
-      : opts.downtimeAdjustedMlKgH;
-    lines.push("Prescribed dose: " + qty(opts.prescribedMlKgH, "mL/kg/h", 1));
-    lines.push("Delivered dose: " + qty(delivered, "mL/kg/h", 1));
-    lines.push("");
+    if (usedRate(opts.qdMlH)) {
+      lines.push("Dialysate: " + qty(opts.qdMlH, "mL/h", 0));
+    }
+    if (usedRate(opts.qpreMlH)) {
+      lines.push("Pre-filter replacement: " + qty(opts.qpreMlH, "mL/h", 0));
+    }
+    if (usedRate(opts.qpostMlH)) {
+      lines.push("Post-filter replacement: " + qty(opts.qpostMlH, "mL/h", 0));
+    }
+    if (isNum(opts.qnetMlH)) {
+      lines.push("Patient fluid removal: " + qty(opts.qnetMlH, "mL/h", 0));
+    }
 
     anticoagulationLines(opts).forEach((l) => lines.push(l));
-    lines.push("");
-
-    signatureLines().forEach((l) => lines.push(l));
 
     return {
       title: "CRRT PRESCRIPTION",
@@ -192,11 +155,33 @@
     };
   }
 
+  /**
+   * Dose-check values (weight, prescribed and delivered dose, FF).
+   * These are not machine settings and must not appear on the prescription card.
+   */
+  function formatDoseCheck(opts) {
+    opts = opts || {};
+    const lines = ["Dose check"];
+    lines.push("Weight: " + qty(opts.weightKg, "kg", Number.isInteger(opts.weightKg) ? 0 : 1));
+    lines.push("Prescribed dose: " + qty(opts.prescribedMlKgH, "mL/kg/h", 1));
+    const delivered = isNum(opts.deliveredMlKgH)
+      ? opts.deliveredMlKgH
+      : opts.downtimeAdjustedMlKgH;
+    lines.push("Delivered dose: " + qty(delivered, "mL/kg/h", 1));
+    if (isNum(opts.ffPct)) {
+      lines.push("Filtration fraction: " + fmt(opts.ffPct, 1) + "%");
+    } else {
+      lines.push("Filtration fraction: " + BLANK);
+    }
+    return { title: "Dose check", text: lines.join("\n") };
+  }
+
   const api = {
     FOOTER,
     BLANK,
     formatLongDate,
     formatCrrtPrescription,
+    formatDoseCheck,
     modalityOrderLabel,
   };
 

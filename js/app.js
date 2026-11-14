@@ -174,7 +174,7 @@
     const dFrac = Number($("c-d-frac").value) / 100;
 
     ["row-qpre", "row-qpost", "row-qd"].forEach((r) => {
-      $(r).classList.toggle("dim", ROWS_BY_MOD[modality].indexOf(r) < 0);
+      if ($(r)) $(r).classList.toggle("dim", ROWS_BY_MOD[modality].indexOf(r) < 0);
     });
 
     let s = null;
@@ -297,6 +297,24 @@
     if ($("c-qb-recap")) {
       $("c-qb-recap").textContent = F.isNum(qb) && qb > 0 ? fmt(qb, 0) + " mL/min" : "—";
     }
+
+    // Hourly net UF → mL/24 h (unit conversion only; not a 24-h planner).
+    if ($("c-qnet-24h")) {
+      const q24 = qnetIn === null ? 0 : qnetIn;
+      setText("c-qnet-24h", F.isNum(q24) ? "Equivalent: " + fmt(q24 * 24, 0) + " mL/24 h" : "Equivalent: —");
+    }
+
+    setText("dc-wt", F.isNum(wt) && wt > 0 ? fmt(wt, wt % 1 ? 1 : 0) + " kg" : "—");
+    setText("dc-pres", F.isNum(prescribed) ? fmt(prescribed, 1) + " mL/kg/h" : "—");
+    setText("dc-del", F.isNum(delivered) ? fmt(delivered, 1) + " mL/kg/h" : "—");
+    setText("dc-ff", F.isNum(ffPct) && Number.isFinite(ffPct) ? fmt(ffPct, 1) + "%" : "—");
+    const notes = [];
+    if (s && s.netExceedsTarget) notes.push("Net UF is more than the target effluent. Lower net UF or raise the dose.");
+    else if (needQbHct) notes.push("Add blood flow and hematocrit for the predilution-corrected dose.");
+    if (ffFlag === "warning") notes.push("Filtration fraction is at or above 25%.");
+    else if (ffFlag === "caution") notes.push("Filtration fraction is at or above 20%.");
+    setText("dc-note", notes.join(" "));
+    if ($("dc-note")) $("dc-note").classList.toggle("warn-text", notes.length > 0);
 
     // Heparin
     let hep = { given: null, bolusUnits: null, bolusIuKg: null, unitsH: null, iuKgH: null, mlH: null };
@@ -627,52 +645,15 @@
 
   function renderSheet(el, rx) {
     if (!el || !rx) return;
-    const lines = rx.text.split("\n");
-    const body = [];
-    let phase = "seek";
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      if (phase === "seek") {
-        if (line.startsWith("Patient:")) phase = "after-patient";
-        continue;
-      }
-      if (phase === "after-patient") {
-        if (line.trim() === "") phase = "body";
-        continue;
-      }
-      if (line.startsWith("Prescriber:") || line === rx.footer) break;
-      body.push(line);
-    }
-
+    const skip = new Set(["", rx.title, "Draft", "CRRT PRESCRIPTION"]);
     const rowBits = [];
-    body.forEach((line) => {
-      if (line.trim() === "") return;
+    rx.text.split("\n").forEach((line) => {
+      const trimmed = line.trim();
+      if (skip.has(trimmed) || trimmed === rx.footer) return;
+      if (/^Wellness Tech/.test(trimmed)) return;
       rowBits.push(rowHtml(line));
     });
-
-    el.innerHTML =
-      '<div class="rx-head">' +
-      '<div class="rx-kicker">Wellness Tech LLC · Draft</div>' +
-      '<div class="rx-title">' +
-      esc(rx.title) +
-      "</div>" +
-      '<div class="rx-date">Date: ' +
-      esc(rx.date) +
-      "</div>" +
-      '<div class="rx-id-line">' +
-      '<div class="rx-writein"><span class="lbl">Patient</span><span class="line"></span></div>' +
-      '<div class="rx-writein"><span class="lbl">MRN</span><span class="line"></span></div>' +
-      "</div></div>" +
-      '<div class="rx-rows">' +
-      rowBits.join("") +
-      "</div>" +
-      '<div class="rx-sig">' +
-      '<div class="rx-writein"><span class="lbl">Prescriber</span><span class="line"></span></div>' +
-      '<div class="rx-writein"><span class="lbl">Date/time</span><span class="line"></span></div>' +
-      "</div>" +
-      '<p class="rx-footer">' +
-      esc(rx.footer) +
-      "</p>";
+    el.innerHTML = '<div class="rx-rows machine">' + rowBits.join("") + "</div>";
     el.dataset.text = rx.text;
   }
 

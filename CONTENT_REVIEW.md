@@ -1,6 +1,6 @@
 # Content review — CRRT Dosing (standalone draft)
 
-**App:** CRRT Dosing, v0.1.2-draft (standalone; split from CRRT & PD Dosing, which keeps the PD content)
+**App:** CRRT Dosing, v0.1.3-draft (standalone; split from CRRT & PD Dosing, which keeps the PD content)
 **Publisher:** Wellness Tech LLC
 **For:** Dr Amar Damodar (Dr D)
 **Status:** `DRAFT=true`. The slim banner reads “Draft – not for clinical use until reviewed by Dr D.” The citrate card also shows “Draft · awaiting Dr D sign-off” from the same flag. Do not set `DRAFT` to false, or remove the banner, without Dr D’s sign-off in his own words.
@@ -16,18 +16,18 @@ Please tick each item after reviewing the equation or statement, the citation, a
 Step-by-step flow (added 14 Nov 2026 after Dr D asked to replace the single screen), with Back and Next and a step indicator. No Calculate button. Results update as you type and are shown on the last step as a live prescription card. Every number field opens the numeric keypad (`inputmode="decimal"` or `"numeric"`). Inputs are 56 px tall; chips are 48 px. Defaults are pre-filled and labelled “default …”.
 
 1. **Modality** — chips; default CVVH post. A 50% split slider appears only for CVVH mixed / CVVHDF (default 50%, not a guideline target).
-2. **Blood flow, then weight.** Blood flow is a choice of common values (150, 200, 250, 300 mL/min) plus a custom entry. It is optional and is used for filtration fraction and the predilution correction. Weight is required.
-3. **Anticoagulant** — Heparin, Citrate, or None. Heparin shows the heparin calculator with a **Bolus: Yes / No** toggle (default Yes). Citrate shows the citrate precautions card.
-4. **Optional variables and the prescription.** Target dose (default 25 mL/kg/h), net UF (default 0), hematocrit, downtime, filter check, and the calcium ratio check, with live results. The final output is one clean **prescription card, labeled as a draft**, covering modality, blood flow, weight, dialysate / replacement / net UF rates, prescribed and delivered dose, and the anticoagulant with its settings. Electrolyte or bath composition (K, Ca, bicarbonate) is left out; it is the prescriber’s choice, and the app does not recommend fluid composition.
+2. **Blood flow & filtration.** Blood flow is a choice of common values (150, 200, 250, 300 mL/min) plus a custom entry (optional). Weight is required. Hematocrit is optional (moved here 14 Nov 2026 at Dr D’s request). Fluid removal (net UF, default 0 mL/h) follows hematocrit, with a helper line showing the equivalent mL/24 h (hourly rate × 24 only; not a 24-h fluid-balance planner). Once blood flow, hematocrit, and weight are entered, filtration fraction and the predilution-corrected dose update live on this step (using the default target of 25 mL/kg/h and the net UF above).
+3. **Anticoagulant** — Heparin, Citrate, or None. The step is trimmed to inputs, outputs, and one-line key targets. Heparin shows **Bolus: Yes / No**, the bolus and infusion fields, and the calculated rates, plus a one-line aPTT 40–45 second target. Citrate shows compact targets (post-filter iCa 0.25–0.35 mmol/L, systemic iCa 1.0–1.3 mmol/L, Ca ratio >2.5 = accumulation), a short exclusions list, and a one-line predictors sentence (Schultheiß 2012: lactate ≥3.4 mmol/L or prothrombin time ≤26%). Long explanations, rationale, and full citations are behind a collapsed **Details & sources** toggle; nothing was deleted. The draft label stays visible.
+4. **Optional variables and the prescription.** Target dose (default 25 mL/kg/h), downtime, and the calcium ratio check. The final output is a clean **prescription card, labeled as a draft**, listing only what is entered into the machine: modality, blood flow (mL/min), dialysate and pre- / post-filter replacement rates (mL/h, omitting unused or zero lines), patient fluid removal (net UF, mL/h), and anticoagulation (heparin bolus in units or “none” and infusion in units/h, plus mL/h if bag strength was entered; citrate as “Citrate per unit protocol” with no rates). A simple aligned two-column list with no prose. Weight, prescribed and delivered dose, filtration fraction, and notes sit in a separate **Dose check** area below the card, not on the prescription. Electrolyte or bath composition is omitted; it is the prescriber’s choice, and the app does not recommend fluid composition.
 
 **Dr D confirmed defaults Nov 14 2026:** prescribed target **25 mL/kg/h**, modality **CVVH post**, heparin bolus **30 IU/kg** and infusion **7 IU/kg/h**. This confirms those starting values only. It is not a sign-off of the app, the new step flow, or other sections. `DRAFT` stays true.
 
 | Step | Number fields | Required | Pre-filled defaults | Taps |
 |---|---|---|---|---|
 | 1. Modality | — | a modality (pre-selected) | CVVH post | Modality chip; a 50% split slider appears only for CVVH mixed / CVVHDF |
-| 2. Blood flow & weight | 2 (custom blood flow only if chosen; weight) | Weight only | none for blood flow or weight | Blood-flow chips 150 / 200 / 250 / 300 mL/min + Custom |
+| 2. Blood flow & filtration | custom blood flow (if chosen), weight, hematocrit, net UF | Weight only | Net UF 0 mL/h; blood flow and hematocrit blank | Blood-flow chips 150 / 200 / 250 / 300 mL/min + Custom |
 | 3. Heparin (if chosen) | 3 (uses weight from step 2) | none beyond weight | Bolus 30 IU/kg, infusion 7 IU/kg/h; bag strength blank | Heparin chip; **Bolus: Yes / No** (default Yes; No hides and zeroes the bolus) |
-| 4. Optional + prescription | target, net UF, hematocrit, downtime, calcium ratio (2) | none (defaults cover a basic dose) | Target 25 mL/kg/h, Net UF 0 mL/h; others blank | Unit toggles on the calcium ratio (total Ca mg/dL ↔ mmol/L; ionized Ca mmol/L ↔ mg/dL) |
+| 4. Optional + prescription | target, downtime, calcium ratio (2) | none (defaults cover a basic dose) | Target 25 mL/kg/h; downtime blank | Unit toggles on the calcium ratio (total Ca mg/dL ↔ mmol/L; ionized Ca mmol/L ↔ mg/dL) |
 
 So a basic dose still needs **1 entry** (weight). Heparin needs **0 extra entries** with defaults, or Bolus: No. The calcium ratio needs **2** lab values. Removed from the earlier draft to simplify: the 3-field 24-h fluid-balance planner (net UF is entered directly as mL/h), the “edit each rate” check mode, the free-text heparin aPTT / anti-Xa / monitoring fields, the citrate infusion-rate helper (see “Not included”), and bath / fluid-composition write-ins on the prescription card.
 
@@ -277,7 +277,7 @@ The main flag is now **strictly greater than 2.5**, to match the trial wording (
 
 ### Citrate on the order sheet
 
-If Citrate is chosen, the prescription card says “Anticoagulation: Regional citrate — per institutional protocol.” No citrate number is printed, and there are no write-in lines for solution, rate, or calcium replacement, so the card does not recommend a fluid or bath composition.
+If Citrate is chosen, the prescription card says “Anticoagulation: Citrate per unit protocol.” No citrate rate or number is printed.
 
 - [ ] Sign-off: citrate order-sheet lines
 
@@ -285,7 +285,7 @@ If Citrate is chosen, the prescription card says “Anticoagulation: Regional ci
 
 ## Order sheet (formatting only)
 
-The last step’s final output is one clean **prescription card, labeled as a draft**. It covers: weight, modality, blood flow, target effluent dose, replacement (pre/post rates), dialysate rate, net UF, prescribed dose, delivered dose, and the anticoagulant with its settings (heparin: bolus Yes/No with units and infusion units/h; citrate: “per institutional protocol,” with no invented rate). Patient, MRN, and prescriber stay as blank write-ins. Footer: “Draft – verify before use; clinical judgment required.” No anticoagulant is pre-selected. Filtration fraction stays on the optional filter-check, not on the prescription card. **Electrolyte or bath composition (K, Ca, bicarbonate) is omitted**; it is the prescriber’s choice, and the app does not recommend fluid composition.
+The last step’s final output is a clean **prescription card, labeled as a draft**, listing only machine settings in a two-column list with no prose: modality, blood flow (mL/min, omitted if not entered), dialysate and pre- / post-filter replacement (mL/h, omitting unused or zero lines), patient fluid removal (net UF, mL/h, shown even when the goal is 0), and anticoagulation (heparin: bolus in units or “none”, infusion in units/h, and mL/h only if bag strength was entered; citrate: “Citrate per unit protocol” with no rates). Weight, prescribed dose, delivered dose, filtration fraction, and notes are in a separate **Dose check** area below the card, not on the prescription. **Electrolyte or bath composition (K, Ca, bicarbonate) is omitted**; it is the prescriber’s choice, and the app does not recommend fluid composition. No anticoagulant is pre-selected.
 
 - [ ] Sign-off: order sheet
 
@@ -295,7 +295,7 @@ The last step’s final output is one clean **prescription card, labeled as a dr
 
 - No PD content (stays in CRRT & PD Dosing).
 - No citrate infusion-rate or calcium-replacement calculator. (The earlier draft’s citrate-in-blood helper — Qb × 60 × target ÷ solution mmol/L, target 3 mmol/L, ACD-A 113 / 4% TSC 136 mmol/L — remains only in CRRT & PD Dosing. Say if you want it here behind the same flag.)
-- No 24-h fluid-balance planner (net UF entered directly).
+- No 24-h fluid-balance planner (net UF is still entered as mL/h). Step 2 shows an equivalent mL/24 h line as a unit conversion only (rate × 24).
 - No 0.93 plasma-water correction. No assumed insensible losses. No filter-efficiency coefficient.
 - No default heparin bag strength, monitoring interval, or UFH anti-Xa.
 - No electrolyte or bath composition (K, Ca, bicarbonate) on the prescription card, and no recommended fluid composition.
