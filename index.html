@@ -456,6 +456,8 @@
       Works offline, with no login or ads, and never stores or sends your inputs.
       Every formula and source is listed in the About sheets and in
       <a href="./CONTENT_REVIEW.md">CONTENT_REVIEW.md</a>.
+      <a href="./privacy.html">Privacy</a> ·
+      <a href="./support.html">Support</a>.
       For nephrologists. Educational use only; not a substitute for clinical judgment or your unit protocol.
     </p>
   </footer>
@@ -475,7 +477,8 @@
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", function () {
-        navigator.serviceWorker.register("./sw.js");
+        var native = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
+        if (!native) navigator.serviceWorker.register("./sw.js");
       });
     }
   </script>

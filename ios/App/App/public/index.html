@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#1e63d6">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="CRRT Rx">
+  <meta name="description" content="Educational CRRT prescribing tool for nephrologists. Effluent dose, heparin, and citrate precautions. Offline, no login, no data collection.">
+  <title>CRRT Rx</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" type="image/png" href="./icons/favicon.png">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="./css/styles.css">
+  <link rel="stylesheet" href="./css/standalone.css">
+</head>
+<body>
+  <header class="top">
+    <div class="top-row">
+      <div>
+        <p class="eyebrow">Wellness Tech LLC</p>
+        <h1>CRRT Rx</h1>
+        <p class="subhead">Educational CRRT prescribing tool for nephrologists</p>
+      </div>
+      <button class="icon-btn" id="theme-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
+        <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <path d="M21 14.5A8.5 8.5 0 1 1 9.5 3 7 7 0 0 0 21 14.5z"/>
+        </svg>
+      </button>
+    </div>
+    <nav class="stepper" id="stepper" aria-label="Steps">
+      <button type="button" class="stepper-item is-on" data-go="1" aria-current="step">
+        <span class="stepper-num">1</span>
+        <span class="stepper-lbl">Modality</span>
+      </button>
+      <button type="button" class="stepper-item" data-go="2">
+        <span class="stepper-num">2</span>
+        <span class="stepper-lbl">Flow &amp; filtration</span>
+      </button>
+      <button type="button" class="stepper-item" data-go="3">
+        <span class="stepper-num">3</span>
+        <span class="stepper-lbl">Anticoagulant</span>
+      </button>
+      <button type="button" class="stepper-item" data-go="4">
+        <span class="stepper-num">4</span>
+        <span class="stepper-lbl">Prescription</span>
+      </button>
+    </nav>
+  </header>
+
+  <section class="wrap panel active" id="panel-crrt">
+    <div class="col-main">
+
+      <!-- ───────── Step 1: modality ───────── -->
+      <div class="step is-on" id="step-1" data-step="1">
+        <article class="card" id="dose-card">
+          <div class="card-h">
+            <h2>Modality</h2>
+            <button type="button" class="about-btn" data-about="crrt-modality">How rates split</button>
+          </div>
+          <div class="mod-h" style="margin-top:0"><span class="field-label">Modality <span class="tag">default CVVH post</span></span></div>
+          <div class="chips big" id="c-mod" role="radiogroup" aria-label="CRRT modality" style="margin-top:6px">
+            <button type="button" class="chip is-on" role="radio" aria-checked="true" data-mod="cvvh">CVVH</button>
+            <button type="button" class="chip" role="radio" aria-checked="false" data-mod="cvvhd">CVVHD</button>
+            <button type="button" class="chip" role="radio" aria-checked="false" data-mod="cvvhdf">CVVHDF</button>
+            <button type="button" class="chip" role="radio" aria-checked="false" data-mod="scuf">SCUF</button>
+          </div>
+          <div class="bolus-row" id="c-cvvh-repl-wrap" style="margin-top:12px">
+            <span class="field-label" id="c-cvvh-repl-lbl">Replacement</span>
+            <div class="chips big" id="c-cvvh-repl" role="radiogroup" aria-labelledby="c-cvvh-repl-lbl">
+              <button type="button" class="chip" role="radio" aria-checked="false" data-repl="pre">Pre</button>
+              <button type="button" class="chip is-on" role="radio" aria-checked="true" data-repl="post">Post</button>
+              <button type="button" class="chip" role="radio" aria-checked="false" data-repl="mixed">Mixed</button>
+            </div>
+          </div>
+          <p class="note split-note hidden" id="c-split-note">Dialysate / replacement split fixed at 50/50</p>
+          <p class="note" id="c-kdigo-mod-note">KDIGO 2012 (5.8.4) recommends <strong>delivering</strong> 20–25 mL/kg/h, which usually means prescribing 25–30 mL/kg/h. The default prescribed target of 25 is set on the last step.</p>
+          <p class="note hidden" id="c-scuf-mod-note">SCUF removes fluid only. There is no dialysate, replacement fluid, or dose target.</p>
+        </article>
+      </div>
+
+      <!-- ───────── Step 2: blood flow, filtration, fluid removal ───────── -->
+      <div class="step" id="step-2" data-step="2">
+        <article class="card" id="flow-card">
+          <div class="card-h">
+            <h2>Blood flow &amp; filtration</h2>
+            <button type="button" class="about-btn" data-about="crrt-rates">About</button>
+          </div>
+          <div class="mod-h" style="margin-top:0"><span class="field-label">Blood flow <span class="tag">optional</span></span></div>
+          <div class="chips big" id="c-qb-presets" role="radiogroup" aria-label="Blood flow, mL/min" style="margin-top:6px">
+            <button type="button" class="chip" role="radio" aria-checked="false" data-qb="150">150</button>
+            <button type="button" class="chip" role="radio" aria-checked="false" data-qb="200">200</button>
+            <button type="button" class="chip" role="radio" aria-checked="false" data-qb="250">250</button>
+            <button type="button" class="chip" role="radio" aria-checked="false" data-qb="300">300</button>
+            <button type="button" class="chip" role="radio" aria-checked="false" data-qb="custom">Custom</button>
+          </div>
+          <label class="field hidden" id="c-qb-wrap" style="margin-top:14px">
+            <span class="field-label">Custom blood flow</span>
+            <div class="field-control">
+              <input id="c-qb" type="text" inputmode="numeric" autocomplete="off" placeholder="—" aria-label="Blood flow, mL/min">
+              <span class="unit-pill">mL/min</span>
+            </div>
+          </label>
+          <p class="note">mL/min. Leave blank if you prefer to skip the filter check.</p>
+
+          <div class="grid-2 simple" style="margin-top:14px">
+          <label class="field">
+            <span class="field-label">Weight <span class="tag req" id="c-wt-tag">required</span></span>
+            <div class="field-control">
+              <input id="c-wt" type="text" inputmode="decimal" enterkeyhint="next" autocomplete="off" placeholder="e.g. 80" aria-label="Weight in kilograms">
+              <span class="unit-pill">kg</span>
+            </div>
+          </label>
+          <label class="field">
+            <span class="field-label">Hematocrit <span class="tag">optional</span></span>
+            <div class="field-control">
+              <input id="c-hct" type="text" inputmode="decimal" autocomplete="off" placeholder="—" aria-label="Hematocrit, percent">
+              <span class="unit-pill">%</span>
+            </div>
+          </label>
+          </div>
+          <p class="note" id="c-wt-msg">Enter the patient’s weight in kilograms to continue.</p>
+
+          <label class="field" style="margin-top:10px">
+            <span class="field-label">Fluid removal (net UF) <span class="tag">default 0</span></span>
+            <div class="field-control">
+              <input id="c-qnet" type="text" inputmode="decimal" enterkeyhint="done" autocomplete="off" value="0" aria-label="Net ultrafiltration (fluid removal), mL/h">
+              <span class="unit-pill">mL/h</span>
+            </div>
+          </label>
+          <p class="note" id="c-qnet-24h">Equivalent: 0 mL/24 h</p>
+          <p class="note hidden" id="c-qnet-scuf-msg">Enter a fluid removal rate greater than 0 mL/h.</p>
+
+          <div class="metric-grid two" id="c-flow-metrics">
+            <div class="metric" id="m-ff"><div class="mv" id="c-ff">—</div><div class="ml">Filtration fraction</div></div>
+            <div class="metric" id="c-corr-metric"><div class="mv" id="c-r-corr">—</div><div class="ml">Predilution-corrected dose</div></div>
+          </div>
+          <div class="hidden" aria-hidden="true"><span id="c-qbmin"></span></div>
+          <p class="note" id="c-flow-dose-note">Uses the default target of 25 mL/kg/h and the fluid-removal rate above. Blank blood flow or hematocrit is not assumed.</p>
+        </article>
+      </div>
+
+      <!-- ───────── Step 3: anticoagulant ───────── -->
+      <div class="step" id="step-3" data-step="3">
+        <article class="card" id="ac-card">
+          <div class="card-h">
+            <h2>Anticoagulation</h2>
+            <button type="button" class="about-btn" data-about="anticoag">About</button>
+          </div>
+          <div class="chips big" id="c-ac" role="radiogroup" aria-label="Anticoagulation">
+            <button type="button" class="chip" role="radio" aria-checked="false" data-ac="none">None</button>
+            <button type="button" class="chip" role="radio" aria-checked="false" data-ac="heparin">Heparin</button>
+            <button type="button" class="chip" role="radio" aria-checked="false" data-ac="citrate">Citrate</button>
+          </div>
+          <p class="note" id="ac-none-note">Choose heparin, citrate, or none. The prescription card keeps a blank write-in line until you choose.</p>
+
+          <div id="c-heparin-block" class="hidden" style="margin-top:14px">
+            <div class="bolus-row" style="margin-top:4px">
+              <span class="field-label" id="c-hep-bolus-lbl">Bolus</span>
+              <div class="chips big" id="c-hep-bolus-on" role="radiogroup" aria-labelledby="c-hep-bolus-lbl">
+                <button type="button" class="chip is-on" role="radio" aria-checked="true" data-bolus="yes">Yes</button>
+                <button type="button" class="chip" role="radio" aria-checked="false" data-bolus="no">No</button>
+              </div>
+            </div>
+            <div class="grid-3 simple" style="margin-top:14px">
+              <label class="field" id="c-hep-bolus-wrap">
+                <span class="field-label">Bolus <span class="tag">default 30</span></span>
+                <div class="field-control">
+                  <input id="c-hep-bolus" type="text" inputmode="decimal" autocomplete="off" value="30" aria-label="Heparin bolus, IU/kg">
+                  <span class="unit-pill">IU/kg</span>
+                </div>
+              </label>
+              <label class="field">
+                <span class="field-label">Infusion <span class="tag">default 7</span></span>
+                <div class="field-control">
+                  <input id="c-hep-rate" type="text" inputmode="decimal" autocomplete="off" value="7" aria-label="Heparin infusion, IU/kg/h">
+                  <span class="unit-pill">IU/kg/h</span>
+                </div>
+              </label>
+              <label class="field">
+                <span class="field-label">Bag strength <span class="tag">optional</span></span>
+                <div class="field-control">
+                  <input id="c-hep-conc" type="text" inputmode="decimal" autocomplete="off" placeholder="—" aria-label="Heparin bag concentration, units/mL">
+                  <span class="unit-pill">units/mL</span>
+                </div>
+              </label>
+            </div>
+            <div class="metric-grid three" id="c-hep-metrics" style="margin-top:12px">
+              <div class="metric" id="c-hep-bolus-metric"><div class="mv" id="c-hep-bolus-u">—</div><div class="ml">Bolus</div></div>
+              <div class="metric"><div class="mv" id="c-hep-rate-out">—</div><div class="ml">Infusion</div></div>
+              <div class="metric"><div class="mv" id="c-hep-ml">—</div><div class="ml">Pump rate</div></div>
+            </div>
+            <p class="note" id="c-hep-target-line">Target aPTT 40–45 seconds (Joannidis 2007). KDIGO does not recommend a single heparin dose.</p>
+            <details class="cit" id="hep-details">
+              <summary>Details &amp; sources</summary>
+              <div class="callout warn">
+                <strong>Check first.</strong> Stop all heparin if HIT is suspected (KDIGO 5.3.4). For CRRT, KDIGO 5.3.2.2 suggests citrate rather than heparin when citrate is not contraindicated. Avoid regional heparinization if bleeding risk is high (5.3.3.2).
+              </div>
+              <p class="note">Defaults are the heparin arm of Joannidis et al. 2007 (bolus 30 IU/kg, then 7 IU/kg/h pre-filter, aPTT 40–45 seconds), one of the trials KDIGO 2012 §5.3 describes. KDIGO does not recommend a single heparin dose. Choose <strong>Bolus: No</strong> if your protocol does not use a bolus. Bag strength has no cited default; enter it to see mL/h. Tap About for alternatives and sources.</p>
+            </details>
+          </div>
+        </article>
+
+        <article class="card cit-card hidden" id="citrate-card">
+          <div class="card-h">
+            <h2>Citrate anticoagulation precautions</h2>
+            <button type="button" class="about-btn" data-about="citrate">Sources</button>
+          </div>
+          <div class="citrate-calc" id="citrate-calc">
+            <p class="compact-h">Prismocitrate 18 rate</p>
+            <div class="grid-3 simple">
+              <label class="field">
+                <span class="field-label">Target citrate dose <span class="tag">default 3</span></span>
+                <div class="field-control">
+                  <input id="c-cit-target" type="text" inputmode="decimal" autocomplete="off" value="3" aria-label="Target citrate dose, mmol per litre of blood, default 3">
+                  <span class="unit-pill">mmol/L</span>
+                </div>
+              </label>
+            </div>
+            <p class="note">mmol per litre of blood. Solution citrate 18 mmol/L (Prismocitrate 18/0 label). Rate = blood flow (mL/min) × 60 × target ÷ 18. Pre-dilution only.</p>
+            <div class="metric-grid two" style="margin-top:10px">
+              <div class="metric"><div class="mv" id="c-cit-rate">—</div><div class="ml">Prismocitrate 18 (pre-filter)</div></div>
+              <div class="metric"><div class="mv" id="c-cit-qb">—</div><div class="ml">Blood flow</div></div>
+            </div>
+            <p class="note" id="c-cit-note">Enter blood flow on the previous step to calculate the rate.</p>
+
+          </div>
+
+          <div class="compact-targets" id="citrate-compact">
+            <div class="compact-row"><span class="ck">Post-filter iCa</span><span class="cv">0.25–0.35 mmol/L</span></div>
+            <div class="compact-row"><span class="ck">Systemic iCa</span><span class="cv">1.0–1.3 mmol/L</span></div>
+            <div class="compact-row"><span class="ck">Ca ratio</span><span class="cv">&gt;2.5 = accumulation</span></div>
+          </div>
+          <p class="compact-h">Do not use if</p>
+          <ul class="compact-list" id="citrate-exclusions-short">
+            <li>Known citrate allergy, adverse reaction, or prior toxicity</li>
+            <li>Acute liver failure</li>
+            <li>Acute-on-chronic liver failure, Child-Pugh &gt;10</li>
+            <li>Refractory shock with lactic acidosis (lactate &gt;4 mmol/L)</li>
+            <li>Systemic iCa outside 1.0–1.3 mmol/L unless first corrected</li>
+          </ul>
+          <p class="predictors-line" id="citrate-predictors-line">Predictors of accumulation risk (Schultheiß 2012, liver failure on CVVHD): lactate ≥3.4 mmol/L or prothrombin time ≤26%.</p>
+
+          <details class="cit" id="cit-details">
+            <summary>Details &amp; sources</summary>
+          <div class="callout warn">
+            <strong>Follow your institution’s protocol.</strong> The numbers in the reference-protocol box come from the Prismocitrate 18 clinical-trial protocol (NCT05399537). They are a trial protocol, not a Bon Secours Richmond policy. A Bon Secours Mercy Health hospital in Springfield, Ohio, was listed as a trial site. Use your local RCA protocol for solution, dose, calcium replacement, targets, and monitoring times. KDIGO advises citrate only in centers with an established protocol.<sup>1</sup>
+          </div>
+
+          <div class="protocol-box" id="prismocitrate-protocol">
+            <h3>Reference protocol: Prismocitrate 18 (NCT05399537)</h3>
+            <p class="protocol-src">Phase 3 safety study of investigational Prismocitrate 18. These are trial values, not a Bon Secours Richmond policy, and not a substitute for your institution’s protocol.</p>
+
+            <div class="protocol-metrics">
+              <div class="protocol-metric">
+                <div class="pk">Post-filter ionized calcium</div>
+                <div class="pv">0.25–0.35 <span class="pu">mmol/L</span></div>
+              </div>
+              <div class="protocol-metric">
+                <div class="pk">Systemic ionized calcium</div>
+                <div class="pv">1.0–1.3 <span class="pu">mmol/L</span></div>
+                <div class="ps">Trial’s normal physiologic range; correct into this range before starting. Safety cut-offs used in the trial: &lt;0.9 and &gt;1.4 mmol/L.</div>
+              </div>
+              <div class="protocol-metric">
+                <div class="pk">Accumulation (total / ionized calcium)</div>
+                <div class="pv">&gt;2.5</div>
+              </div>
+            </div>
+
+            <h4>Solution</h4>
+            <p class="protocol-p">Prismocitrate 18, pre-dilution only. Citrate dose indexed to blood flow, target 3 mmol/L of blood. When blood flow is entered, the pre-filter rate is calculated from that relationship and the labelled 18 mmol/L citrate concentration, and is counted toward the effluent-dose target. The prescription lists Calcium infusion: per protocol.</p>
+
+            <h4>Do not use if (trial exclusions)</h4>
+            <ul>
+              <li>Known citrate allergy, adverse reaction to citrate, or prior citrate toxicity</li>
+              <li>Acute liver failure</li>
+              <li>Acute-on-chronic liver failure with Child-Pugh score &gt;10</li>
+              <li>Refractory shock with lactic acidosis (lactate &gt;4 mmol/L)</li>
+              <li>Systemic ionized calcium outside 1.0–1.3 mmol/L, unless first corrected into that range</li>
+            </ul>
+          </div>
+
+          <div class="predictors-box" id="citrate-predictors">
+            <h3>Predictors of citrate accumulation risk</h3>
+            <p class="predictors-src">From one observational study in patients with liver failure treated with CVVHD and regional citrate anticoagulation (Schultheiß et al., <em>Crit Care.</em> 2012;16:R162).<sup>6</sup> These are study predictors, not trial exclusions and not a unit protocol.</p>
+            <ul>
+              <li>Baseline serum lactate ≥3.4 mmol/L</li>
+              <li>Prothrombin time ≤26%</li>
+            </ul>
+            <p class="predictors-note">These predicted a total-to-ionized calcium ratio ≥2.5 (sensitivity 86% for both; specificity 86% for lactate and 92% for prothrombin time).<sup>6</sup> The study reported prothrombin time as a percentage, not as INR. A later review also reports these thresholds.<sup>4</sup> Reviews have not established a universal lactate cut-off for avoiding citrate.<sup>3</sup></p>
+          </div>
+
+          <details class="cit">
+            <summary>Avoid or use with caution</summary>
+            <ul>
+              <li><strong>Severe liver failure</strong> and <strong>shock with muscle hypoperfusion</strong> are the major contraindications in KDIGO, because both risk citrate accumulation. KDIGO recommends citrate only in patients without shock or severe liver failure.<sup>1</sup></li>
+              <li><strong>Persistent lactic acidosis / poor tissue perfusion</strong> carries the highest risk, because citrate metabolism needs oxygen. Accumulation is likely with persistent severe heart failure, <strong>ischemic hepatitis (shock liver)</strong>, and poor muscle perfusion.<sup>2</sup></li>
+              <li>A high lactate at the start of CRRT should raise concern. Reviews have not established a universal lactate cut-off for avoiding citrate.<sup>2,3</sup> The trial protocol above excludes refractory shock with lactate &gt;4 mmol/L.<sup>5</sup></li>
+              <li>Liver disease is not an absolute bar in recent reviews: with dose reduction and closer monitoring, citrate has been used in liver failure. Standard liver tests do not reliably predict citrate clearance.<sup>2,3,4</sup></li>
+              <li>Some poisonings that block mitochondria (for example metformin, paracetamol, propofol) may also lower citrate metabolism.<sup>3</sup> Large transfusions of citrated blood products add citrate load.<sup>4</sup></li>
+            </ul>
+          </details>
+
+          <details class="cit">
+            <summary>What to monitor</summary>
+            <ul>
+              <li><strong>Post-filter ionized calcium</strong> — checks circuit anticoagulation. Primary target in the reference protocol above: <strong>0.25–0.35 mmol/L</strong> (Prismocitrate 18 trial).<sup>5</sup> Other published ranges include 0.2–0.35 mmol/L<sup>3</sup> or 0.3–0.4 mmol/L.<sup>4</sup> <em>Use your protocol’s range.</em></li>
+              <li><strong>Systemic ionized calcium</strong> — guides calcium replacement. Primary range in the reference protocol: <strong>1.0–1.3 mmol/L</strong> (the trial’s normal physiologic range).<sup>5</sup> Reviews also say to target the normal or physiological range.<sup>3,4</sup> <em>Target per protocol.</em></li>
+              <li><strong>Total-to-ionized calcium ratio</strong> — the most reliable bedside sign of accumulation. Primary flag in the reference protocol: a ratio <strong>above 2.5</strong>.<sup>5</sup> Supporting literature: a ratio of about 2.5 is the usual recognized cut-off; a rising trend toward it also matters.<sup>3</sup> One review says a rise above <strong>2.25</strong> should prompt you to consider accumulation.<sup>2</sup></li>
+              <li><strong>Blood gas, sodium, and magnesium.</strong> KDIGO says monitoring should include acid-base status, sodium, and total and ionized calcium.<sup>1</sup> One review suggests post-filter, systemic, and total calcium about every 6 hours after the start, and magnesium daily.<sup>3</sup> Another describes usual calcium checks every 4–6 hours, shortened in patients at risk.<sup>4</sup> <em>Timing per protocol.</em></li>
+              <li><strong>Rising calcium replacement needs</strong> are an early warning sign of accumulation.<sup>3,4</sup></li>
+            </ul>
+          </details>
+
+          <details class="cit">
+            <summary>Metabolic complications</summary>
+            <ul>
+              <li><strong>Metabolic alkalosis</strong> — the most frequent metabolic complication in observational studies (up to 50% of patients in KDIGO’s summary).<sup>1</sup> It usually means net citrate overload with normal metabolism: too much citrate or too little clearance. The calcium ratio stays normal.<sup>3</sup></li>
+              <li><strong>Hypernatremia</strong> — mainly with concentrated (hypertonic) trisodium citrate if the replacement or dialysate sodium is not lowered to match. Depends on the solutions used.<sup>2,4</sup></li>
+              <li><strong>Hypocalcemia</strong> — from accumulation, or from calcium replacement lower than calcium lost in the effluent.<sup>2</sup></li>
+              <li><strong>Hypomagnesemia</strong> — citrate binds magnesium, which is lost in the effluent. Supplement needs depend on fluid magnesium content.<sup>2,4</sup></li>
+              <li><strong>Metabolic acidosis</strong> — with accumulation (often with high lactate and a high anion gap), or from too little buffer delivered.<sup>3,4</sup></li>
+            </ul>
+          </details>
+
+          <details class="cit">
+            <summary>If accumulation is suspected</summary>
+            <p class="cit-p">Signs: rising total-to-ionized calcium ratio, falling systemic ionized calcium, rising calcium needs, and worsening acidosis.<sup>2,3</sup> Act per your protocol. Published steps:</p>
+            <ul>
+              <li>Lower the citrate load: reduce blood flow (citrate is coupled to it) or the citrate target, and/or raise effluent flow to clear more citrate.<sup>2,3</sup></li>
+              <li>Give IV calcium to correct ionized hypocalcemia, and titrate bicarbonate to correct acidosis.<sup>2</sup></li>
+              <li>Reduce or stop citrate and switch circuit anticoagulation if there is no quick improvement, but <strong>keep CRRT running</strong> so citrate–calcium complexes are cleared.<sup>2,3</sup></li>
+              <li>If citrate is in the pre-dilution replacement fluid, its dose is tied to the CRRT dose; replace it with bicarbonate fluid, with or without heparin.<sup>2</sup></li>
+              <li>Net citrate overload (alkalosis, normal ratio) is benign; reduce citrate delivery and do not stop therapy for it.<sup>3</sup></li>
+            </ul>
+          </details>
+
+          <ol class="refs">
+            <li>KDIGO Clinical Practice Guideline for Acute Kidney Injury. <em>Kidney Int Suppl.</em> 2012;2:1–138. Chapter 5.3 (5.3.2.2, 5.3.3.1, rationale, Table 19).</li>
+            <li>Oudemans-van Straaten HM, Ostermann M. Bench-to-bedside review: Citrate for continuous renal replacement therapy, from science to practice. <em>Crit Care.</em> 2012;16:249. doi:10.1186/cc11645</li>
+            <li>Schneider AG, Journois D, Rimmelé T. Complications of regional citrate anticoagulation: accumulation or overload? <em>Crit Care.</em> 2017;21:281. doi:10.1186/s13054-017-1880-1</li>
+            <li>Morabito S, Pistolesi V, Tritapepe L, Fiaccadori E. Regional citrate anticoagulation for RRTs in critically ill patients with AKI. <em>Clin J Am Soc Nephrol.</em> 2014;9:2173–2188. doi:10.2215/CJN.01280214</li>
+            <li>Safety Evaluation of Prismocitrate 18 in Patients Receiving CRRT. ClinicalTrials.gov identifier: NCT05399537. <a href="https://clinicaltrials.gov/study/NCT05399537" target="_blank" rel="noopener">clinicaltrials.gov/study/NCT05399537</a> (record retrieved 14 Nov 2026; last update posted 5 Oct 2026). A Bon Secours Mercy Health hospital in Springfield, Ohio, was listed as a site (the record now marks that site terminated).</li>
+            <li>Schultheiß C, Saugel B, Phillip V, et al. Continuous venovenous hemodialysis with regional citrate anticoagulation in patients with liver failure: a prospective observational study. <em>Crit Care.</em> 2012;16:R162. doi:10.1186/cc11485</li>
+            <li>Prismocitrate 18/0 Instruction for use. Bieffe Medital S.p.A. (Baxter), D13000165 Ver. 4.0. Specification: sodium chloride 5.03 g/l, sodium citrate 5.29 g/l; citrate 18 mmol/l, sodium 140 mmol/l, chloride 86 mmol/l; calcium- and magnesium-free. “The solution must be used in pre-dilution only with a dialysis machine intended for continuous renal replacement therapy.” <a href="https://corpturkey-site.baxterdigital.net/sites/g/files/ebysai1366/files/2019-03/prismocitrate%2018-0.pdf" target="_blank" rel="noopener">IFU PDF</a> (read 14 Nov 2026).</li>
+            <li>Regiocit Solution for haemofiltration. Summary of Product Characteristics, Health Products Regulatory Authority, 4 November 2026, PA25288/008/001. Same ionic composition (citrate 18 mmol/l, sodium 140 mmol/l, chloride 86 mmol/l). Section 4.2: the rate “depends on the targeted citrate dose and the prescribed blood flow rate (BFR)”; pre-filter infusion “adapted relative to the blood flow rate to achieve target blood citrate concentration of 3 to 4 mmol/l of blood”; “pre-dilution mode only,” with the solution flow rate “automatically adapted based on an operator set target dose (mmol citrate/l blood).” “A separate infusion of calcium is always required.” No starting calcium rate or bag strength is given. <a href="https://assets.hpra.ie/products/Human/21433/Licence_PA25288-008-001_04112026153259.pdf" target="_blank" rel="noopener">HPRA SmPC PDF</a> (read 14 Nov 2026).</li>
+          </ol>
+          </details>
+        </article>
+      </div>
+
+      <!-- ───────── Step 4: optional variables + prescription ───────── -->
+      <div class="step" id="step-4" data-step="4">
+        <article class="card" id="optional-card">
+          <div class="card-h">
+            <h2>Optional variables</h2>
+            <button type="button" class="about-btn" data-about="crrt-dose">About</button>
+          </div>
+          <div class="grid-3 simple">
+            <label class="field">
+              <span class="field-label">Target dose <span class="tag">default 25</span></span>
+              <div class="field-control">
+                <input id="c-target" type="text" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="25" aria-label="Target prescribed dose, mL/kg/h">
+                <span class="unit-pill">mL/kg/h</span>
+              </div>
+            </label>
+            <label class="field">
+              <span class="field-label">Downtime <span class="tag">default 10%</span></span>
+              <div class="field-control">
+                <input id="c-down" type="text" inputmode="decimal" autocomplete="off" value="10" aria-label="Expected downtime, percent, default 10">
+                <span class="unit-pill">%</span>
+              </div>
+            </label>
+          </div>
+          <p class="note" id="c-dose-msg">Enter weight to see rates. Results update as you type.</p>
+          <p class="note">KDIGO 2012 (5.8.4) recommends <strong>delivering</strong> 20–25 mL/kg/h, which usually means prescribing 25–30 mL/kg/h. The default 25 is a prescribed starting dose.</p>
+        </article>
+
+
+        <article class="card hidden" id="ratio-card" aria-hidden="true">
+          <div class="card-h">
+            <h2>Citrate monitoring</h2>
+          </div>
+          <h3 class="ratio-subhead">Calcium ratio check <span class="h2-sub">optional · 2 lab values</span></h3>
+          <div class="ratio-box" style="margin-top:0">
+            <div class="grid-2 simple">
+              <label class="field">
+                <span class="field-label">Total calcium</span>
+                <div class="field-control">
+                  <input id="c-tca" type="text" inputmode="decimal" autocomplete="off" placeholder="—" aria-label="Total calcium">
+                  <button type="button" class="unit-pill btn" id="c-tca-u" data-unit="mg/dL" aria-label="Total calcium unit, tap to change">mg/dL</button>
+                </div>
+              </label>
+              <label class="field">
+                <span class="field-label">Ionized calcium</span>
+                <div class="field-control">
+                  <input id="c-ica" type="text" inputmode="decimal" autocomplete="off" placeholder="—" aria-label="Ionized calcium">
+                  <button type="button" class="unit-pill btn" id="c-ica-u" data-unit="mmol/L" aria-label="Ionized calcium unit, tap to change">mmol/L</button>
+                </div>
+              </label>
+            </div>
+            <div class="metric-grid" style="margin-top:12px">
+              <div class="metric" id="m-ratio"><div class="mv" id="c-ratio">—</div><div class="ml">Total / ionized ratio</div></div>
+              <div class="metric" id="m-ratio-st"><div class="mv small" id="c-ratio-st">—</div><div class="ml">Reading</div></div>
+            </div>
+            <p class="note">Tap a unit to switch it. Both values use the same blood draw. mg/dL ÷ 4 = mmol/L. Main flag: a ratio <strong>above 2.5</strong> (Prismocitrate 18 trial, NCT05399537). A reading above 2.25 is noted as “consider” (Oudemans-van Straaten 2012). Supporting literature also cites 2.5 as the usual cut-off (Schneider 2017). Other published cut-offs: 2.4 (Link 2012) and 2.1 (cited in KDIGO). Cut-offs were not albumin-adjusted.<sup>4</sup> A screening marker only; trend matters.</p>
+          </div>
+        </article>
+
+        <div class="rates hidden" id="c-rates" aria-hidden="true">
+          <div class="rate"><span class="rk">Total effluent</span><span class="rv" id="r-qeff">—</span></div>
+          <div class="rate" id="row-qpre"><span class="rk">Replacement, pre-filter</span><span class="rv" id="r-qpre">—</span></div>
+          <div class="rate" id="row-qpost"><span class="rk">Replacement, post-filter</span><span class="rv" id="r-qpost">—</span></div>
+          <div class="rate" id="row-qd"><span class="rk">Dialysate</span><span class="rv" id="r-qd">—</span></div>
+          <div class="rate"><span class="rk">Net UF (fluid removal)</span><span class="rv" id="r-qnet">—</span></div>
+        </div>
+
+        <article class="card rx-card" id="rx-card">
+          <div class="card-h rx-card-h">
+            <h2>Prescription</h2>
+            <div class="rx-actions no-print">
+              <button type="button" class="rx-btn" id="c-rx-copy">Copy</button>
+              <button type="button" class="rx-btn" id="c-rx-print">Print</button>
+            </div>
+          </div>
+          <div class="rx-sheet" id="c-rx-sheet"></div>
+        </article>
+
+        <article class="card" id="dose-check-card">
+          <div class="card-h">
+            <h2>Dose check</h2>
+          </div>
+          <div class="result-rows" id="dose-check-rows">
+            <div class="result-row"><span class="rk">Weight</span><span class="rv" id="dc-wt">—</span></div>
+            <div class="result-row" id="dc-pres-row"><span class="rk">Prescribed dose</span><span class="rv" id="dc-pres">—</span></div>
+            <div class="result-row" id="dc-del-row"><span class="rk">Delivered dose</span><span class="rv" id="dc-del">—</span></div>
+            <div class="result-row"><span class="rk">Filtration fraction</span><span class="rv" id="dc-ff">—</span></div>
+          </div>
+          <p class="note" id="dc-note"></p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <div class="step-bar" id="step-bar">
+    <button type="button" class="step-btn" id="step-back" disabled>Back</button>
+    <p class="step-hint" id="step-hint"></p>
+    <button type="button" class="step-btn primary" id="step-next">Next</button>
+  </div>
+
+  <footer class="foot">
+    <p>Wellness Tech LLC · Support:
+      <a href="mailto:amardamodar@gmail.com">amardamodar@gmail.com</a>.
+      Works offline, with no login or ads, and never stores or sends your inputs.
+      Every formula and source is listed in the About sheets and in
+      <a href="./CONTENT_REVIEW.md">CONTENT_REVIEW.md</a>.
+      <a href="./privacy.html">Privacy</a> ·
+      <a href="./support.html">Support</a>.
+      For nephrologists. Educational use only; not a substitute for clinical judgment or your unit protocol.
+    </p>
+  </footer>
+
+  <div class="overlay" id="overlay" hidden></div>
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" hidden>
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <button type="button" class="sheet-close" id="sheet-close" aria-label="Close">×</button>
+    <h3 id="sheet-title"></h3>
+    <div id="sheet-body"></div>
+  </div>
+
+  <script src="./js/config.js"></script>
+  <script src="./js/formulas.js"></script>
+  <script src="./js/prescription.js"></script>
+  <script src="./js/app.js"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        var native = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
+        if (!native) navigator.serviceWorker.register("./sw.js");
+      });
+    }
+  </script>
+</body>
+</html>

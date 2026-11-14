@@ -533,3 +533,37 @@ body { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
 }
 .citrate-calc .compact-h { margin-top: 4px; }
 .citrate-calc .compact-h:first-child { margin-top: 0; }
+
+/* iOS: keep scrolled content from drawing under the status bar / notch.
+   body already uses env(safe-area-inset-*); this fixed cover paints the
+   inset with the page background so text cannot show through. */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--safe-t, env(safe-area-inset-top, 0px));
+  background: var(--bg);
+  z-index: 200;
+  pointer-events: none;
+}
+
+/* iPad / wide screens: the combined CRRT+PD stylesheet reserves a 360px
+   sticky sidebar that this standalone app does not use. Use one centered
+   column so cards are not stuck to the left, and keep room for the step bar. */
+@media (min-width: 960px) {
+  .wrap,
+  .panel.active.wrap {
+    grid-template-columns: 1fr !important;
+    max-width: 760px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .top, .foot {
+    max-width: 760px;
+  }
+  body {
+    padding-bottom: calc(76px + var(--safe-b, env(safe-area-inset-bottom, 0px)));
+  }
+}

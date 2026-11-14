@@ -1,5 +1,5 @@
 /* Offline cache for CRRT Rx. No network after first load. */
-const CACHE = "crrt-dosing-v15";
+const CACHE = "crrt-dosing-v16";
 const ASSETS = [
   "./",
   "./index.html",
@@ -15,6 +15,7 @@ const ASSETS = [
   "./icons/icon-512.png",
   "./icons/favicon.png",
   "./icons/apple-touch-icon.png",
+  "./privacy.html",
 ];
 
 self.addEventListener("install", (event) => {

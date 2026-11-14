@@ -1,0 +1,11 @@
+{
+	"appId": "com.drd.crrtrx",
+	"appName": "CRRT Rx",
+	"webDir": "www",
+	"ios": {
+		"contentInset": "never",
+		"backgroundColor": "#eef2f8",
+		"preferredContentMode": "mobile"
+	},
+	"packageClassList": []
+}

@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1e63d6">
+<meta name="color-scheme" content="light dark">
+<title>CRRT Rx: Support</title>
+<style>
+  *{ box-sizing:border-box; }
+  :root{
+    --bg:#eef2f8; --ink:#0b1830; --muted:#3a4f6a; --teal:#1e63d6;
+    --safe-t: env(safe-area-inset-top, 0px);
+    --safe-b: env(safe-area-inset-bottom, 0px);
+    --safe-l: env(safe-area-inset-left, 0px);
+    --safe-r: env(safe-area-inset-right, 0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0b1220; --ink:#e8f0ff; --muted:#b8c9e0; --teal:#7eb0ff; }
+  }
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",system-ui,sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.55; font-size:16px;
+    padding: calc(16px + var(--safe-t)) calc(20px + var(--safe-r)) calc(32px + var(--safe-b)) calc(20px + var(--safe-l));
+  }
+  main{ max-width:40rem; margin:0 auto; }
+  a.back{
+    display:inline-flex; align-items:center; justify-content:center;
+    min-height:44px; min-width:44px; padding:.5rem 1rem;
+    color:#fff; font-weight:700; font-size:16px; text-decoration:none;
+    background:#1e63d6; border-radius:999px;
+  }
+  h1{ font-size:1.5rem; margin:1.2rem 0 .4rem; }
+  h2{ font-size:1.15rem; margin-top:1.5rem; }
+  p, li{ color:var(--muted); }
+  .disclaimer{ color:var(--ink); }
+  a{ color:var(--teal); }
+  a.mail{ display:inline-flex; align-items:center; min-height:44px; font-weight:700; }
+</style>
+</head>
+<body>
+  <main>
+    <a class="back" href="index.html">Back to CRRT Rx</a>
+    <h1>CRRT Rx Support</h1>
+    <p>CRRT Rx is an educational CRRT prescribing tool for nephrologists, published by Wellness Tech LLC. It calculates effluent dose, heparin, and Prismocitrate 18 citrate rates on your device.</p>
+    <h2>Contact</h2>
+    <p>Email <a class="mail" href="mailto:amardamodar@gmail.com">amardamodar@gmail.com</a> for support or questions about the app.</p>
+    <h2>How the app works</h2>
+    <p>It works fully offline, with no login, no ads, and no data collection. Sources for each formula are listed in the in-app About sheets.</p>
+    <h2>Disclaimer</h2>
+    <p class="disclaimer">For nephrologists. Educational use only; not a substitute for clinical judgment or your unit protocol.</p>
+  </main>
+</body>
+</html>
