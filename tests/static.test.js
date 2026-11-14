@@ -241,7 +241,7 @@ isTrue(/counted toward the dose/.test(app) && /citrateExceedsTarget/.test(read("
 isTrue(/rx-note/.test(app) && /rx-note/.test(read("css/standalone.css")), "dose-cut note is styled as sentence-case body text, not an uppercase section");
 isTrue(/- \[x\] Sign-off \(Dr D, 14 Nov 2026\): Prismocitrate 18 rate, counting citrate toward the dose, and calcium infusion per protocol/.test(review), "citrate rate and dose-cut item is signed off");
 isTrue(/DRAFT\s*=\s*false/.test(read("js/config.js")), "DRAFT is false");
-isTrue(/crrt-dosing-v16/.test(read("sw.js")), "service-worker cache version is bumped");
+isTrue(/crrt-dosing-v17/.test(read("sw.js")), "service-worker cache version is bumped");
 
 console.log("\n────────────────────────────────────────");
 console.log(`Passed: ${passed}   Failed: ${failed}`);
