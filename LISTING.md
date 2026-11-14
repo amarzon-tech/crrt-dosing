@@ -6,7 +6,7 @@ Privacy Policy and Support URLs are not live yet. `privacy.html` and `support.ht
 
 - Privacy: https://amarzon-tech.github.io/crrt-dosing/privacy.html
 - Support: https://amarzon-tech.github.io/crrt-dosing/support.html
-- Support email: amardamodar@gmail.com
+- Support email: akd.nephrology@gmail.com
 
 Do not enter those GitHub Pages URLs in App Store Connect until the pages are actually on the live site.
 
@@ -90,4 +90,4 @@ Guideline 1.4.1 (Physical Harm): This is an educational tool, not a device and n
 
 Guideline 4.2 (Minimum Functionality): The app is more than a website wrapper. It runs entirely offline from bundled files, walks through a four-step prescription flow, calculates rates as the user types, and offers Copy and Print of the prescription. It supports iPhone and iPad in all orientations and respects safe-area insets.
 
-Export compliance: ITSAppUsesNonExemptEncryption is false (no exempt or non-exempt encryption). Contact: amardamodar@gmail.com.
+Export compliance: ITSAppUsesNonExemptEncryption is false (no exempt or non-exempt encryption). Contact: akd.nephrology@gmail.com.

@@ -31,4 +31,4 @@ node tests/static.test.js
 
 ## Privacy and support
 
-amardamodar@gmail.com. Works offline after the first load (service worker).
+akd.nephrology@gmail.com. Works offline after the first load (service worker).

@@ -21,7 +21,7 @@ Do not merge this `ios-wrap` branch to `main` until Dr D says so. The live site 
 
 - Privacy: https://amarzon-tech.github.io/crrt-dosing/privacy.html
 - Support: https://amarzon-tech.github.io/crrt-dosing/support.html
-- Contact: amardamodar@gmail.com
+- Contact: akd.nephrology@gmail.com
 
 Until those pages are on the live site, do not paste a GitHub Pages URL that 404s.
 
