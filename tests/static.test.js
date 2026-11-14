@@ -1,0 +1,96 @@
+/**
+ * Static checks for the standalone CRRT Dosing app:
+ * draft flag, noindex, robots, offline/no-tracking, simple data entry.
+ * Run: node tests/static.test.js
+ */
+"use strict";
+
+const fs = require("fs");
+const path = require("path");
+const root = path.join(__dirname, "..");
+const read = (p) => fs.readFileSync(path.join(root, p), "utf8");
+
+let passed = 0;
+let failed = 0;
+const failures = [];
+function isTrue(cond, msg) {
+  if (cond) passed++;
+  else {
+    failed++;
+    failures.push(msg);
+  }
+}
+function section(name) {
+  console.log("\n▸ " + name);
+}
+
+const html = read("index.html");
+const app = read("js/app.js");
+const cfg = require("../js/config.js");
+const sw = read("sw.js");
+const shipped = ["index.html", "404.html", "js/app.js", "js/formulas.js", "js/prescription.js", "js/config.js", "css/styles.css", "css/standalone.css", "manifest.json", "sw.js"];
+
+section("Draft flag, banner, noindex, robots");
+isTrue(cfg.DRAFT === true, "DRAFT must be true until Dr D signs off");
+isTrue(/id="draft-banner"/.test(html), "draft banner element present");
+isTrue(/<meta name="robots" content="noindex, nofollow">/.test(html), "index.html noindex");
+isTrue(/<meta name="robots" content="noindex/.test(read("404.html")), "404.html noindex");
+isTrue(/User-agent: \*\s+Disallow: \//.test(read("robots.txt")), "robots.txt disallows all");
+isTrue(/id="cit-draft-tag"/.test(html) && /CITRATE_DRAFT_LABEL/.test(app), "citrate content carries the draft label from config");
+isTrue(!fs.existsSync(path.join(root, "CNAME")), "no custom domain");
+
+section("Offline, no login, no tracking, no stored data");
+shipped.forEach((f) => {
+  const t = read(f);
+  isTrue(!/github\.com/i.test(t), f + ": no github.com URL");
+  isTrue(!/google-analytics|googletagmanager|gtag\(|plausible|segment\.io|hotjar|mixpanel|facebook\.net/i.test(t), f + ": no analytics");
+  isTrue(!/localStorage|sessionStorage|indexedDB|document\.cookie/.test(t), f + ": no stored data");
+  isTrue(!/fetch\(\s*["']http|XMLHttpRequest|navigator\.sendBeacon/.test(t), f + ": no outbound requests");
+});
+isTrue(!/<script[^>]+src="http/i.test(html), "no remote scripts");
+isTrue(!/<link[^>]+href="http/i.test(html), "no remote stylesheets or fonts");
+isTrue(!/type="password"|<form|sign in|log in/i.test(html), "no login form");
+["./css/standalone.css", "./js/app.js", "./js/formulas.js", "./js/prescription.js", "./js/config.js"].forEach((a) =>
+  isTrue(sw.includes('"' + a + '"'), "service worker caches " + a)
+);
+
+section("No PD content");
+isTrue(!/peritoneal|Kt\/V|PET\b|CAPD|APD\b/i.test(html), "index.html has no PD content");
+isTrue(!/panel-pd|tab-pd/.test(html + app), "no PD tab");
+
+section("Simple data entry");
+const inputs = html.match(/<input [^>]*>/g) || [];
+const textInputs = inputs.filter((i) => /type="text"/.test(i));
+isTrue(textInputs.length > 0, "has text inputs");
+textInputs.forEach((i) => {
+  const id = (i.match(/id="([^"]+)"/) || [])[1];
+  isTrue(/inputmode="(decimal|numeric)"/.test(i), id + ": numeric keypad");
+  isTrue(/aria-label="[^"]+"/.test(i), id + ": has a label");
+});
+isTrue(textInputs.length === 11, "11 number fields total (dose 3, filter check 3, heparin 3, calcium ratio 2); got " + textInputs.length);
+isTrue(!/>\s*Calculate\s*</i.test(html), "no Calculate button");
+isTrue(/id="c-target"[^>]*value="25"/.test(html), "target dose prefilled 25");
+isTrue(/id="c-qnet"[^>]*value="0"/.test(html), "net UF prefilled 0");
+isTrue(/id="c-hep-bolus"[^>]*value="30"/.test(html), "heparin bolus prefilled 30");
+isTrue(/id="c-hep-rate"[^>]*value="7"/.test(html), "heparin infusion prefilled 7");
+isTrue((html.match(/class="tag">default/g) || []).length >= 5, "defaults are labeled as defaults");
+isTrue(/document\.addEventListener\("input"/.test(app), "results update live on input");
+
+section("Citrate precautions content");
+["Follow your institution", "Severe liver failure", "shock liver", "lactic acidosis", "Post-filter ionized calcium",
+ "Systemic ionized calcium", "Total-to-ionized calcium ratio", "2.5", "Metabolic alkalosis", "Hypernatremia",
+ "Hypocalcemia", "Hypomagnesemia", "If accumulation is suspected", "keep CRRT running", "KDIGO"].forEach((k) =>
+  isTrue(html.includes(k), "precautions mention: " + k)
+);
+["10.1186/cc11645", "10.1186/s13054-017-1880-1", "10.2215/CJN.01280214", "Kidney Int Suppl"].forEach((k) =>
+  isTrue(html.includes(k), "reference listed: " + k)
+);
+
+console.log("\n────────────────────────────────────────");
+console.log(`Passed: ${passed}   Failed: ${failed}`);
+if (failed) {
+  console.error("\nFailures:");
+  failures.forEach((f) => console.error(" -", f));
+  process.exit(1);
+}
+console.log("All tests passed.");
