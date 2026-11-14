@@ -34,7 +34,7 @@ Step-by-step flow (added 14 Nov 2026 after Dr D asked to replace the single scre
 
 So a basic dose still needs **1 entry** (weight). A SCUF prescription needs a fluid-removal rate greater than 0; weight is optional. Heparin needs **0 extra entries** with defaults, or Bolus: No. When citrate is selected, the calcium ratio needs **2** lab values. Removed from the earlier draft to simplify: the 3-field 24-h fluid-balance planner (net UF is entered directly as mL/h), the “edit each rate” check mode, the free-text heparin aPTT / anti-Xa / monitoring fields, and bath / fluid-composition write-ins on the prescription card. A Prismocitrate 18 rate calculation was added on 14 Nov 2026 at Dr D’s request, then updated the same day so citrate is counted toward the dose and calcium is listed as per protocol (see the sign-off item below); it is still draft content.
 
-- [ ] Sign-off: data-entry design and defaults
+- [x] Sign-off (Dr D, 14 Nov 2026): data-entry design and defaults
 
 ---
 
@@ -73,7 +73,7 @@ KDIGO Clinical Practice Guideline for Acute Kidney Injury. *Kidney Int Suppl.* 2
 
 - With pre-filter replacement and no blood flow/hematocrit, the app shows prescribed dose only and asks for Qb + Hct; it does not assume a hematocrit.
 
-- [ ] Sign-off: CRRT effluent dose (prescribed, corrected, delivered)
+- [x] Sign-off (Dr D, 14 Nov 2026): CRRT effluent dose (prescribed, corrected, delivered)
 
 ---
 
@@ -90,7 +90,7 @@ Remaining effluent after net UF is assigned as:
 
 **Caveats:** if net UF already exceeds the target effluent, rates are not shown and the app says “Net UF is more than the target effluent. Lower net UF or raise the dose.” Rates are suggestions from the target dose; the standalone app does not have an “edit each rate to check a running prescription” mode (that remains in CRRT & PD Dosing).
 
-- [ ] Sign-off: Suggested rates by modality
+- [x] Sign-off (Dr D, 14 Nov 2026): Suggested rates by modality
 
 ---
 
@@ -121,7 +121,7 @@ Murugan R, Hoste E, Mehta RL, et al. Precision fluid management in CRRT. *Blood 
 
 Neri distinguishes **filtration fraction** (ideally below 30%) from **concentration ratio** (keep below 20–25%). We warn at 20% and 25% on the used FF, and state this in the About sheet.
 
-- [ ] Sign-off: Filtration fraction and minimum Qb
+- [x] Sign-off (Dr D, 14 Nov 2026): Filtration fraction and minimum Qb
 
 ---
 
@@ -158,7 +158,7 @@ Joannidis M, Oudemans-van Straaten HM. Clinical review: Patency of the circuit i
 - 5.3.4 (1A): in HIT, all heparin must be stopped (rationale includes heparin locks); recommend a DTI (e.g. argatroban) or Factor Xa inhibitor (e.g. danaparoid or fondaparinux) rather than other or no anticoagulation during RRT
 - 5.3.4.1 (2C): in HIT without severe liver failure, suggest argatroban
 
-- [ ] Sign-off: Unfractionated heparin starting values, source disagreements, HIT/bleeding wording
+- [x] Sign-off (Dr D, 14 Nov 2026): Unfractionated heparin starting values, source disagreements, HIT/bleeding wording
 
 
 ---
@@ -185,7 +185,7 @@ Educational text only. **No citrate or calcium dose is calculated.** The only ci
 | “Follow your institution’s protocol. The numbers in the reference-protocol box come from the Prismocitrate 18 clinical-trial protocol (NCT05399537). They are a trial protocol, not a Bon Secours Richmond policy. A Bon Secours Mercy Health hospital in Springfield, Ohio, was listed as a trial site. Use your local RCA protocol for solution, dose, calcium replacement, targets, and monitoring times.” | App disclaimer (judgment), plus the trial record [6] and the Springfield site listing (now terminated). KDIGO: RCA “requires a strict protocol, adapted to the local treatment modality and flow settings.” |
 | “KDIGO advises citrate only in centers with an established protocol.” | [1] “…only recommend the use of citrate for anticoagulation during CRRT in patients that do not have shock or severe liver failure, and in centers that have an established protocol for citrate anticoagulation.” |
 
-- [ ] Sign-off: disclaimer
+- [x] Sign-off (Dr D, 14 Nov 2026): disclaimer
 
 
 ### Reference protocol: Prismocitrate 18 (NCT05399537)
@@ -208,7 +208,7 @@ Labeled on screen as **“Reference protocol: Prismocitrate 18 (NCT05399537)”*
 
 *In the record but not shown on the card (judgment):* the full acute-liver-failure definition (on the Sources sheet instead); “or outside of the laboratory reference range”; symptom examples in the primary outcomes (tetany/spasms, seizures, prolonged or shortened QT, mental-status changes, refractory acidosis); other study eligibility (age ≥18, expected survival of at least 24 hours, pregnancy or breastfeeding, concurrent interventional study, contraindication to heparin / increased hemorrhage risk); PrisMax Version 3.x / calcium line accessory; treatment period up to 10 days; current recruiting status and lack of posted results (mentioned briefly as Phase 3 / investigational). The lactate ≥3.4 mmol/L and prothrombin time ≤26% predictors are now on the card in a separate “Predictors of citrate accumulation risk” block, cited to Schultheiß et al. 2012 [7] (the observational study reported by [4]). They are not in this trial record and are not shown as trial exclusions. [3] still says no lactate threshold has been established; that sentence remains as supporting text.
 
-- [ ] Sign-off: Prismocitrate 18 reference-protocol block and the values taken from NCT05399537
+- [x] Sign-off (Dr D, 14 Nov 2026): Prismocitrate 18 reference-protocol block and the values taken from NCT05399537
 
 ### Avoid or use with caution
 
@@ -223,7 +223,7 @@ Labeled on screen as **“Reference protocol: Prismocitrate 18 (NCT05399537)”*
 
 *Now shown, as study predictors (not trial exclusions):* After Dr D asked for them on 14 Nov 2026, the card includes a “Predictors of citrate accumulation risk” block. The primary source is Schultheiß et al. 2012 [7]: in patients with liver failure on CVVHD with RCA, baseline serum lactate ≥3.4 mmol/L and prothrombin time ≤26% predicted a total-to-ionized calcium ratio ≥2.5 (sensitivity 86% for both; specificity 86% for lactate, 92% for prothrombin time). The card states these are study predictors, not trial exclusions and not a unit protocol, and notes that the study reported prothrombin time as a percentage, not as INR (no INR cut-off was published; none was invented). Review [4] also reports these thresholds (the earlier “available but not shown” item). The statement from [3] that no universal lactate cut-off for avoiding citrate has been established is kept on the card.
 
-- [ ] Sign-off: contraindications and cautions
+- [x] Sign-off (Dr D, 14 Nov 2026): contraindications and cautions
 
 ### What to monitor
 
@@ -235,7 +235,7 @@ Labeled on screen as **“Reference protocol: Prismocitrate 18 (NCT05399537)”*
 | Blood gas, sodium, magnesium. KDIGO: monitoring should include acid-base status, sodium, total and ionized calcium. One review: post-filter, systemic and total calcium about **every 6 hours** after the start, magnesium **daily**. Another: usual calcium checks every **4–6 hours**, shortened if at risk. Timing per protocol. | [1] “intensive metabolic monitoring, including acid-base status, sodium, and total and ionized calcium levels.” [3] “After the initiation phase, regular monitoring (every 6 h) of post-filter, systemic, and total calcium levels (with total/ionized ratio calculation) should be performed”; “daily monitoring of serum magnesium levels is also advisable.” [4] “the usual calcium monitoring intervals (4–6 hours) … should be shortened in patients who may have impaired citrate metabolism.” ([2] advises “2-hourly at start” in at-risk patients — in the Sources sheet.) |
 | Rising calcium replacement needs are an early warning sign. | [3] “an increase in calcium substitution needs … should prompt particular attention.” [4] “progressively higher calcium infusion rates may be required.” |
 
-- [ ] Sign-off: monitoring
+- [x] Sign-off (Dr D, 14 Nov 2026): monitoring
 
 ### Metabolic complications
 
@@ -247,7 +247,7 @@ Labeled on screen as **“Reference protocol: Prismocitrate 18 (NCT05399537)”*
 | Hypomagnesemia — citrate binds magnesium, lost in effluent; needs depend on fluid magnesium. | [2] “Citrate also binds to magnesium and this may cause hypomagnesemia due to increased magnesium loss.” [4] “the need for supplementation is related to exchanged volumes and the magnesium concentration in CRRT solutions.” |
 | Metabolic acidosis — with accumulation (often high lactate and high anion gap), or too little buffer delivered. | [3] “recurrence of high anion gap metabolic acidosis and increased serum lactate levels are also frequently observed concomitant to citrate accumulation”; insufficient trisodium-citrate delivery causes residual acidosis. [4] acidosis “when impaired citrate metabolism prevents bicarbonate generation or, alternatively, from an insufficient buffer supply.” |
 
-- [ ] Sign-off: metabolic complications
+- [x] Sign-off (Dr D, 14 Nov 2026): metabolic complications
 
 ### If accumulation is suspected
 
@@ -260,7 +260,7 @@ Labeled on screen as **“Reference protocol: Prismocitrate 18 (NCT05399537)”*
 | If citrate is in the pre-dilution replacement, its dose is tied to the CRRT dose; replace it with bicarbonate fluid ± heparin. | [2] “when citrate is part of the pre-dilution replacement, reduction of citrate dose is not an option … citrate should be replaced by bicarbonate with or without heparin.” |
 | Net citrate overload (alkalosis, normal ratio) is benign; reduce citrate delivery and do not stop therapy for it. | [3] “citrate overload is a benign process and should not prompt therapy discontinuation. It is usually fixed with citrate delivery reduction.” |
 
-- [ ] Sign-off: management of suspected accumulation
+- [x] Sign-off (Dr D, 14 Nov 2026): management of suspected accumulation
 
 ### Calcium ratio check (the only citrate calculation)
 
@@ -278,13 +278,13 @@ ratio < 1            → "Total is lower than ionized — check units"  (unit-en
 
 The main flag is now **strictly greater than 2.5**, to match the trial wording (“ratio > 2.5”). Exactly 2.5 is therefore not an accumulation flag; it stays in the “consider” band because it is still above 2.25. Comparison is on the ratio rounded to 3 decimals so a float artefact at exactly 2.25 or 2.5 does not flip the reading. Supporting literature on the note under the box: Schneider 2017 usual cut-off of 2.5 [3]. Shown as text, not flags: 2.4 (Link 2012, mortality predictor) and 2.1 (KDIGO: “optimal cutoff at 2.1”, citing Bakker et al. *Clin Chem Lab Med* 2006;44:962-966). [4] notes the published cut-offs were derived without albumin adjustment; this is on screen. On-screen hint “Both values use the same blood draw” is a usage instruction (judgment).
 
-- [ ] Sign-off: calcium ratio check, thresholds and wording
+- [x] Sign-off (Dr D, 14 Nov 2026): calcium ratio check, thresholds and wording
 
 ### Citrate on the order sheet
 
 If Citrate is chosen and a Prismocitrate 18 rate has been calculated, the prescription lists “Anticoagulation: Citrate,” the Prismocitrate 18 pre-filter rate, “Calcium infusion: per protocol,” and a one-line note when citrate was counted toward the dose. If blood flow is missing, it says “Anticoagulation: Citrate per unit protocol” plus the calcium line, with no invented rate.
 
-- [ ] Sign-off: citrate order-sheet lines
+- [x] Sign-off (Dr D, 14 Nov 2026): citrate order-sheet lines
 
 ---
 
@@ -292,7 +292,7 @@ If Citrate is chosen and a Prismocitrate 18 rate has been calculated, the prescr
 
 The last step’s final output is a clean **prescription card, labeled as a draft**, listing only machine settings in a two-column list with no prose: modality, blood flow (mL/min, omitted if not entered), dialysate and pre- / post-filter replacement (mL/h, omitting unused or zero lines; omitted entirely for SCUF), patient fluid removal (net UF, mL/h, shown even when the goal is 0), and anticoagulation (heparin: bolus in units or “none”, infusion in units/h, and mL/h only if bag strength was entered; citrate: the Prismocitrate 18 pre-filter rate when calculated, otherwise “Citrate per unit protocol,” plus “Calcium infusion: per protocol”). Weight, prescribed dose, delivered dose, filtration fraction, and notes are in a separate **Dose check** area below the card, not on the prescription. **Electrolyte or bath composition (K, Ca, bicarbonate) is omitted**; it is the prescriber’s choice, and the app does not recommend fluid composition. No anticoagulant is pre-selected.
 
-- [ ] Sign-off: order sheet
+- [x] Sign-off (Dr D, 14 Nov 2026): order sheet
 
 ---
 
@@ -344,7 +344,7 @@ Example: 80 kg, target 25 mL/kg/h, Qb 150 mL/min, CVVH Post, net UF 0: citrate 1
 - No trial starting calcium rate, compensation percentage, or titration table, and no default bag strength.
 - The algebraic coefficient is the unit conversion of the stated indexing relationship, not a formula printed in the trial or the label.
 
-- [ ] Sign-off: Prismocitrate 18 rate, counting citrate toward the dose, and calcium infusion per protocol
+- [x] Sign-off (Dr D, 14 Nov 2026): Prismocitrate 18 rate, counting citrate toward the dose, and calcium infusion per protocol
 
 
 ---
