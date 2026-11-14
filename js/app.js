@@ -406,7 +406,7 @@
         prescribed = d.prescribedMlKgH;
         corrected = d.correctedMlKgH;
       } catch (e) {
-        prescribed = s.qeffMlH / wt;
+        prescribed = (F.isNum(qeffUse) ? qeffUse : s.qeffMlH) / wt;
         corrected = null;
         needQbHct = true;
       }

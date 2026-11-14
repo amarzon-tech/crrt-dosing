@@ -223,6 +223,7 @@ isTrue(/prismocitrate%2018-0\.pdf/.test(html) && /Licence_PA25288-008-001/.test(
 isTrue(/prismocitrate18Rate/.test(app) && /prismocitrate18Rate/.test(read("js/formulas.js")), "prismocitrate18Rate is implemented and used");
 isTrue(/anticoagulation === "citrate"/.test(app) && /c-cit-rate/.test(app), "citrate rate is computed only in the citrate path");
 isTrue(/applyPrismocitratePreFilter/.test(app), "citrate rate is reconciled as pre-filter replacement");
+isTrue(/prescribed = \(F\.isNum\(qeffUse\) \? qeffUse : s\.qeffMlH\) \/ wt/.test(app), "dose-check prescribed effluent uses the citrate-inclusive qeff when predilution correction cannot run");
 isTrue(/not reduced automatically/.test(app), "dose-split post and dialysate are not auto-reduced");
 isTrue(/- \[ \] Sign-off: Prismocitrate 18 rate and calcium replacement start calculation/.test(review), "unticked sign-off item for the citrate and calcium calculation");
 
