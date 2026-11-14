@@ -282,7 +282,6 @@
     const ok = !scuf && s && !s.netExceedsTarget;
 
     let citrateRate = null;
-    let calciumRate = null;
     const citTargetIn = $("c-cit-target") ? num($("c-cit-target")) : null;
     if (anticoagulation === "citrate") {
       let citTarget = null;
@@ -300,34 +299,51 @@
       }
     }
 
+    let qpreExtra = ok ? s.qpreMlH : null;
     let qpreUse = ok ? s.qpreMlH : null;
     let qpostUse = ok ? s.qpostMlH : null;
     let qdUse = ok ? s.qdMlH : null;
     let qnetUse = (scuf || ok) && F.isNum(qnet) ? qnet : null;
     let qeffUse = ok ? s.qeffMlH : null;
     let citrateApplied = false;
+    let citrateExceeds = false;
+    let citrateCounted = false;
     if (F.isNum(citrateRate) && (ok || scuf)) {
       const rec = F.applyPrismocitratePreFilter({
         citrateRateMlH: citrateRate,
+        modality: scuf ? "scuf" : mod,
+        qpreMlH: ok ? s.qpreMlH : 0,
         qpostMlH: ok ? s.qpostMlH : 0,
         qdMlH: ok ? s.qdMlH : 0,
         qnetMlH: F.isNum(qnet) ? qnet : 0,
-        doseBasedQpreMlH: ok ? s.qpreMlH : (scuf ? 0 : null),
+        remainingMlH: ok ? s.remainingMlH : null,
+        preFraction: preFrac,
+        dialysateFraction: dFrac,
       });
-      qpreUse = rec.qpreMlH;
+      qpreExtra = rec.qpreMlH;
+      qpreUse = citrateRate + rec.qpreMlH;
       qpostUse = rec.qpostMlH;
       qdUse = rec.qdMlH;
       qnetUse = rec.qnetMlH;
       qeffUse = rec.qeffMlH;
       citrateApplied = true;
+      citrateExceeds = !!rec.citrateExceedsTarget;
+      citrateCounted = !!rec.citrateCountedTowardDose;
     } else if (F.isNum(citrateRate)) {
+      qpreExtra = 0;
       qpreUse = citrateRate;
     }
 
     if (ok && citrateApplied && !s.netExceedsTarget) {
-      msg = "Pre-filter rate is the Prismocitrate 18 rate (" + fmt(citrateRate, 0) + " mL/h). Post-filter and dialysate still follow the dose split at " + fmt(target, target % 1 ? 1 : 0) + " mL/kg/h and are not reduced automatically.";
-      msgEl.textContent = msg;
-      msgEl.classList.toggle("warn-text", false);
+      if (citrateExceeds && F.isNum(wt) && wt > 0 && F.isNum(qeffUse)) {
+        msg = "Citrate alone exceeds the target dose (" + fmt(qeffUse / wt, 1) + " mL/kg/h). Other rates set to 0. Consider lowering blood flow.";
+        msgEl.textContent = msg;
+        msgEl.classList.toggle("warn-text", true);
+      } else {
+        msg = "Citrate is counted toward the dose; other rates are reduced to keep " + fmt(target, target % 1 ? 1 : 0) + " mL/kg/h.";
+        msgEl.textContent = msg;
+        msgEl.classList.toggle("warn-text", false);
+      }
     }
 
     if (anticoagulation === "citrate") {
@@ -339,22 +355,23 @@
       } else if (!F.isNum(citrateRate)) {
         citNotes.push("Enter blood flow on the previous step to calculate the rate.");
       } else {
-        citNotes.push("Prismocitrate 18 is for pre-dilution only. This rate is the pre-filter replacement in the effluent, dose, filtration fraction, and prescription. It is set by blood flow and the citrate target, not by the effluent-dose target.");
-        if (citrateApplied && ok && F.isNum(wt) && wt > 0 && F.isNum(qeffUse) && F.isNum(target)) {
-          const actual = qeffUse / wt;
-          if (Math.abs(actual - target) > 0.05) {
-            citNotes.push("Prescribed dose is " + fmt(actual, 1) + " mL/kg/h, not the " + fmt(target, target % 1 ? 1 : 0) + " mL/kg/h target, because post-filter and dialysate rates are not automatically reduced to keep that target.");
-          }
+        citNotes.push("Prismocitrate 18 is pre-dilution only. The rate is set by blood flow and the citrate target, and is counted toward the effluent dose.");
+        if (citrateExceeds && F.isNum(wt) && wt > 0 && F.isNum(qeffUse)) {
+          citNotes.push("Citrate alone exceeds the target dose (" + fmt(qeffUse / wt, 1) + " mL/kg/h). Consider lowering blood flow.");
         }
         if (mod === "cvvhd" || scuf) {
           citNotes.push("The Prismocitrate 18 trial (NCT05399537) studied CVVH and CVVHDF only, not " + (scuf ? "SCUF" : "CVVHD") + ".");
         }
       }
       setText("c-cit-note", citNotes.join(" "));
+      if ($("c-cit-note")) $("c-cit-note").classList.toggle("warn-text", citrateExceeds);
     } else {
       if ($("c-cit-rate")) setText("c-cit-rate", "—");
       if ($("c-cit-qb")) setText("c-cit-qb", "—");
-      if ($("c-cit-note")) setText("c-cit-note", "");
+      if ($("c-cit-note")) {
+        setText("c-cit-note", "");
+        $("c-cit-note").classList.remove("warn-text");
+      }
     }
 
     const ratesOk = ok || (scuf && citrateApplied);
@@ -484,46 +501,11 @@
       if (ffFlag === "warning") notes.push("Filtration fraction is at or above 25%.");
       else if (ffFlag === "caution") notes.push("Filtration fraction is at or above 20%.");
     }
-    if (citrateApplied && ok && F.isNum(wt) && wt > 0 && F.isNum(qeffUse) && F.isNum(target) && Math.abs(qeffUse / wt - target) > 0.05) {
-      notes.push("Prismocitrate 18 pre-filter flow is included in the dose. Post-filter and dialysate were not reduced to keep the " + fmt(target, target % 1 ? 1 : 0) + " mL/kg/h target.");
+    if (citrateExceeds && ok && F.isNum(wt) && wt > 0 && F.isNum(qeffUse)) {
+      notes.push("Citrate alone exceeds the target dose (" + fmt(qeffUse / wt, 1) + " mL/kg/h). Consider lowering blood flow.");
     }
     setText("dc-note", notes.join(" "));
     if ($("dc-note")) $("dc-note").classList.toggle("warn-text", notes.length > 0);
-
-    if (anticoagulation === "citrate") {
-      const tCaEff = $("c-ca-eff") ? num($("c-ca-eff")) : null;
-      const caSol = $("c-ca-sol") ? num($("c-ca-sol")) : null;
-      const havePair = F.isNum(tCaEff) && tCaEff > 0 && F.isNum(caSol) && caSol > 0;
-      const havePartial = (F.isNum(tCaEff) && tCaEff > 0) || (F.isNum(caSol) && caSol > 0);
-      if (havePair && F.isNum(qeffUse) && qeffUse > 0 && (ok || scuf)) {
-        try {
-          calciumRate = F.calciumReplacementStartRate({
-            tCaEffMmolPerL: tCaEff,
-            qEffMlH: qeffUse,
-            caSolMmolPerL: caSol,
-          }).rateMlH;
-        } catch (e) {
-          calciumRate = null;
-        }
-      }
-      setText("c-ca-rate", F.isNum(calciumRate) ? fmt(calciumRate, 1) + " mL/h" : "—");
-      let caNote = "";
-      if (havePair && !F.isNum(calciumRate)) {
-        caNote = scuf
-          ? "A start rate needs the effluent flow (Prismocitrate 18 rate plus fluid removal)."
-          : "A start rate needs the effluent flow, which is available once weight and the dose target are entered.";
-      } else if (havePartial && !havePair) {
-        caNote = "Enter both estimated effluent calcium and the calcium-solution concentration.";
-      } else if (!havePair) {
-        caNote = "Leave these fields blank to keep Calcium per unit protocol on the prescription.";
-      } else {
-        caNote = "Starting estimate = estimated effluent calcium × effluent flow ÷ calcium-solution concentration (Yessayan et al., Kidney360 2025). Titrate to systemic ionized calcium.";
-      }
-      setText("c-ca-note", caNote);
-    } else {
-      if ($("c-ca-rate")) setText("c-ca-rate", "—");
-      if ($("c-ca-note")) setText("c-ca-note", "");
-    }
 
     // Heparin
     let hep = { given: null, bolusUnits: null, bolusIuKg: null, unitsH: null, iuKgH: null, mlH: null };
@@ -600,13 +582,14 @@
         modality: scuf ? "scuf" : mod,
         targetMlKgH: scuf ? null : (F.isNum(target) && target > 0 ? target : null),
         qbMlMin: F.isNum(qb) && qb > 0 ? qb : null,
-        qpreMlH: scuf ? (citrateApplied ? qpreUse : null) : (ok ? qpreUse : (F.isNum(citrateRate) ? citrateRate : null)),
+        qpreMlH: scuf ? null : (ok ? qpreExtra : null),
         qpostMlH: scuf || !ok ? null : qpostUse,
         qdMlH: scuf || !ok ? null : qdUse,
         qnetMlH: scuf ? (F.isNum(qnet) ? qnet : null) : (ok ? (F.isNum(qnetUse) ? qnetUse : s.qnetMlH) : null),
         anticoagulation,
         citrateRateMlH: F.isNum(citrateRate) ? citrateRate : null,
-        calciumRateMlH: F.isNum(calciumRate) ? calciumRate : null,
+        citrateCountedTowardDose: citrateCounted,
+        citrateExceedsTarget: citrateExceeds,
         heparinBolusGiven: anticoagulation === "heparin" ? hep.given : null,
         heparinBolusUnits: hep.bolusUnits,
         heparinBolusIuPerKg: hep.bolusIuKg,
@@ -717,7 +700,7 @@
         If a bag concentration (units/mL) is entered: mL/h = (units/h) ÷ (units/mL)</p>
         <p>These are unit conversions only. A no-bolus option is provided so you can match a unit protocol; it is not a cited “preferred” regimen. Bag strength has <strong>no cited default</strong> and is left blank. No monitoring interval or aPTT target is filled in on the order sheet; write in your unit’s protocol. We do not pre-fill an anti-Xa range for UFH; the anti-Xa figures in the KDIGO-cited trials were for LMWH (enoxaparin 0.25–0.30 U/ml in Joannidis 2007; a mean of 0.49 U/ml in a subset of the Reeves dalteparin arm).</p>
         <h4>Citrate</h4>
-        <p>When citrate is selected, the Prismocitrate 18 pre-filter rate is calculated from blood flow and the trial target (default 3 mmol/L of blood) using the labelled 18 mmol/L citrate concentration. A numeric calcium start rate is shown only if estimated effluent calcium and the calcium-solution concentration are entered. See the Citrate anticoagulation precautions card and its Details &amp; sources.</p>
+        <p>When citrate is selected, the Prismocitrate 18 pre-filter rate is calculated from blood flow and the trial target (default 3 mmol/L of blood) using the labelled 18 mmol/L citrate concentration. That rate is counted toward the effluent-dose target, and the other fluid rates are reduced to keep the target. Calcium infusion is listed as per protocol. See the Citrate anticoagulation precautions card and its Details &amp; sources.</p>
       `,
     },
     citrate: {
@@ -726,9 +709,9 @@
         <p><strong>Follow your institution’s protocol.</strong> The reference-protocol box uses values from the Prismocitrate 18 clinical-trial protocol (NCT05399537). Those values are a trial protocol, not a Bon Secours Richmond policy. Draft — awaiting Dr D sign-off.</p>
         <h4>Prismocitrate 18 rate</h4>
         <p class="eq">Qcit (mL/h) = Qb (mL/min) × 60 × target (mmol/L blood) ÷ 18 mmol/L</p>
-        <p>This is the unit conversion of the trial statement that the pre-filter infusion is “indexed to the blood flow rate (BFR) to achieve a target blood citrate concentration of 3 mmol/L of blood” (<a href="https://clinicaltrials.gov/study/NCT05399537" target="_blank" rel="noopener">NCT05399537</a>). The 18 mmol/L concentration is from the Prismocitrate 18/0 Instruction for use (Bieffe Medital / Baxter, D13000165 Ver. 4.0: “Citrate C6H5O73- 18 mmol/l”) and is confirmed by the Regiocit SmPC (HPRA, 4 November 2026, PA25288/008/001), which has the same ionic composition and states that the rate depends on the targeted citrate dose and blood flow, with the pump adapted to an operator-set target in mmol citrate per litre of blood. The SmPC adult target range is 3 to 4 mmol/L of blood; the app default remains the trial value of 3, and is editable. The solution is for pre-dilution only and is counted as pre-filter replacement in the effluent, dose, and prescription. Post-filter and dialysate rates from the dose split are not automatically reduced to keep the effluent-dose target.</p>
-        <h4>Calcium replacement start</h4>
-        <p>The trial record does not publish a starting calcium rate or titration table (calcium “compensation” is described only as PrisMax software). The Regiocit SmPC requires a separate calcium infusion but gives no starting rate or bag strength. If estimated effluent calcium and the calcium-solution concentration are entered, the start rate uses Yessayan, Tolwani, Heung, Szamosfalvi. <em>Kidney360.</em> 2025;7:1160–1167. <a href="https://doi.org/10.34067/KID.0000001053" target="_blank" rel="noopener">doi:10.34067/KID.0000001053</a>: Calcium rate (mL/h) = [tCa]<sub>Eff</sub> × Q<sub>Eff</sub> / [Ca<sup>2+</sup>]<sub>sol</sub>. Typical effluent calcium is given there as a range (1.6–2 mmol/L), not a single default, and no default bag strength is assumed. Otherwise the prescription lists Calcium per unit protocol.</p>
+        <p>This is the unit conversion of the trial statement that the pre-filter infusion is “indexed to the blood flow rate (BFR) to achieve a target blood citrate concentration of 3 mmol/L of blood” (<a href="https://clinicaltrials.gov/study/NCT05399537" target="_blank" rel="noopener">NCT05399537</a>). The 18 mmol/L concentration is from the Prismocitrate 18/0 Instruction for use (Bieffe Medital / Baxter, D13000165 Ver. 4.0: “Citrate C6H5O73- 18 mmol/l”) and is confirmed by the Regiocit SmPC (HPRA, 4 November 2026, PA25288/008/001), which has the same ionic composition and states that the rate depends on the targeted citrate dose and blood flow, with the pump adapted to an operator-set target in mmol citrate per litre of blood. The SmPC adult target range is 3 to 4 mmol/L of blood; the app default remains the trial value of 3, and is editable. The solution is for pre-dilution only and is counted as pre-filter replacement in the effluent, dose, and prescription. Other fluid rates are reduced so total effluent stays at the prescribed dose target. If the citrate rate alone exceeds that target, the other rates are set to 0 and a note suggests lowering blood flow.</p>
+        <h4>Calcium infusion</h4>
+        <p>The trial record does not publish a starting calcium rate or titration table. The Regiocit SmPC requires a separate calcium infusion but gives no starting rate or bag strength. Effluent calcium is not usually measured, so no calcium rate is calculated. The prescription lists Calcium infusion: per protocol.</p>
         <h4>Reference protocol: Prismocitrate 18 (NCT05399537)</h4>
         <p>Safety Evaluation of Prismocitrate 18 in Patients Receiving CRRT. ClinicalTrials.gov identifier: NCT05399537. <a href="https://clinicaltrials.gov/study/NCT05399537" target="_blank" rel="noopener">clinicaltrials.gov/study/NCT05399537</a>. Record retrieved 14 Nov 2026; last update posted 5 Oct 2026. Sponsor: Vantive Health LLC. Phase 3, recruiting, no results posted. A Bon Secours Mercy Health hospital in Springfield, Ohio, was listed as a site (the record now marks that site terminated). This is not a Bon Secours Richmond policy.</p>
         <ul>

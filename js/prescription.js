@@ -92,11 +92,7 @@
         // Rate not calculated (for example, blood flow not entered).
         lines.push("Anticoagulation: Citrate per unit protocol");
       }
-      if (usedRate(opts.calciumRateMlH)) {
-        lines.push("Calcium infusion: " + qty(opts.calciumRateMlH, "mL/h", 1));
-      } else {
-        lines.push("Calcium: per unit protocol");
-      }
+      lines.push("Calcium infusion: per protocol");
     } else if (kind === "heparin") {
       lines.push("Anticoagulation: Heparin");
       if (opts.heparinBolusGiven === false) {
@@ -121,6 +117,46 @@
       lines.push("Anticoagulation: " + BLANK);
     }
     return lines;
+  }
+
+
+  /**
+   * One-line note when citrate is counted toward the effluent-dose target.
+   * Concise wording only; rates are already on the card.
+   */
+  function citrateDoseLine(opts) {
+    if (!usedRate(opts.citrateRateMlH)) return null;
+    if (opts.citrateExceedsTarget) {
+      const dose = isNum(opts.prescribedMlKgH) ? qty(opts.prescribedMlKgH, "mL/kg/h", 1) : null;
+      return dose
+        ? "Citrate alone exceeds the target dose (" + dose + "). Consider lowering blood flow."
+        : "Citrate alone exceeds the target dose. Consider lowering blood flow.";
+    }
+    if (!opts.citrateCountedTowardDose) return null;
+    const mod = (opts.modality || "").toLowerCase();
+    const pre = isNum(opts.qpreMlH) ? opts.qpreMlH : 0;
+    const post = isNum(opts.qpostMlH) ? opts.qpostMlH : 0;
+    const qd = isNum(opts.qdMlH) ? opts.qdMlH : 0;
+    if (mod === "cvvh-post") {
+      return "Citrate counted toward dose; post-filter reduced to " + qty(post, "mL/h", 0) + ".";
+    }
+    if (mod === "cvvh-pre") {
+      return "Citrate counted toward dose; additional pre-filter replacement " + qty(pre, "mL/h", 0) + ".";
+    }
+    if (mod === "cvvh-mixed") {
+      return "Citrate counted toward dose; remaining replacement split pre " + fmt(pre, 0) + " / post " + fmt(post, 0) + " mL/h.";
+    }
+    if (mod === "cvvhd") {
+      return "Citrate counted toward dose; dialysate reduced to " + qty(qd, "mL/h", 0) + ".";
+    }
+    if (mod === "cvvhdf") {
+      const rep = pre + post;
+      if (rep > 0.05) {
+        return "Citrate counted toward dose; replacement reduced to " + qty(rep, "mL/h", 0) + ".";
+      }
+      return "Citrate counted toward dose; replacement reduced to 0 mL/h, dialysate " + qty(qd, "mL/h", 0) + ".";
+    }
+    return "Citrate counted toward dose.";
   }
 
   /**
@@ -149,9 +185,11 @@
       lines.push("Dialysate: " + qty(opts.qdMlH, "mL/h", 0));
     }
     if (citratePre) {
-      // Prismocitrate 18 is itself the pre-filter replacement; do not list it twice.
+      // Prismocitrate 18 is itself pre-filter fluid. Any leftover pre-filter
+      // replacement (CVVH Pre / Mixed) is listed on its own line.
       lines.push("Prismocitrate 18 (pre-filter): " + qty(opts.citrateRateMlH, "mL/h", 0));
-    } else if (!scuf && usedRate(opts.qpreMlH)) {
+    }
+    if (!scuf && usedRate(opts.qpreMlH)) {
       lines.push("Pre-filter replacement: " + qty(opts.qpreMlH, "mL/h", 0));
     }
     if (!scuf && usedRate(opts.qpostMlH)) {
@@ -162,6 +200,8 @@
     }
 
     anticoagulationLines(opts).forEach((l) => lines.push(l));
+    const citNote = citrateDoseLine(opts);
+    if (citNote) lines.push(citNote);
 
     return {
       title: "CRRT PRESCRIPTION",

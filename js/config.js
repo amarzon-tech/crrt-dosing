@@ -5,7 +5,7 @@
  * in his own words. The citrate calcium-ratio check and the citrate
  * precautions are shown only as draft content while DRAFT is true
  * (CITRATE_DRAFT_LABEL) and are covered by the same sign-off.
- * The Prismocitrate 18 rate and optional calcium start-rate calculation
+ * The Prismocitrate 18 rate, and counting that rate toward the dose,
  * are also draft content under that flag.
  */
 (function (global) {
@@ -15,7 +15,7 @@
   const DRAFT_BANNER = "Draft – not for clinical use until reviewed by Dr D";
   const CITRATE_DRAFT_LABEL = "Draft · awaiting Dr D sign-off";
   const APP_NAME = "CRRT Dosing";
-  const APP_VERSION = "0.1.3-draft";
+  const APP_VERSION = "0.1.4-draft";
   const SUPPORT_EMAIL = "amardamodar@gmail.com";
   const PUBLISHER = "Wellness Tech LLC";
 

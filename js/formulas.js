@@ -57,13 +57,6 @@
     //   composition).
     CITRATE_DOSE_DEFAULT: 3,
     PRISMOCITRATE18_MMOL_PER_L: 18,
-    // Typical effluent total-calcium range from Yessayan, Tolwani, Heung,
-    //   Szamosfalvi, Kidney360 2025;7:1160–1167 (doi:10.34067/KID.0000001053):
-    //   “hourly calcium loss in 1 L of effluent typically ranges from 1.6
-    //   to 2 mmol” when plasma citrate accumulation is negligible. Display
-    //   and documentation only — never used as a calculation default.
-    EFFLUENT_TCA_RANGE_MIN: 1.6,
-    EFFLUENT_TCA_RANGE_MAX: 2,
     // Unfractionated heparin for CRRT. KDIGO AKI 2012 §5.3 does not recommend
     // a single numeric dose ("large variability"; "no firm recommendations").
     // Starting values below are the regimen used in the second of the two
@@ -425,57 +418,122 @@
   }
 
   /**
-   * Starting calcium infusion rate to replace effluent calcium loss.
-   * Yessayan L, Tolwani A, Heung M, Szamosfalvi B. Kidney360. 2025;7:1160–1167
-   * (doi:10.34067/KID.0000001053, PMID 41201866):
+   * Count Prismocitrate 18 (pre-filter) toward the effluent-dose target
+   * and reduce the other prescribed fluids so total effluent stays at
+   * the target (Dr D, 14 Nov 2026).
    *
-   *   Calcium rate (mL/h) = [tCa]Eff × QEff / [Ca2+]sol
+   * remaining = (target mL/kg/h × weight) − net UF, i.e. the dose-based
+   * clearance fluid besides net UF. Citrate is always pre-filter and is
+   * included in Qeff. Additional (non-citrate) pre-filter replacement
+   * is returned as qpreMlH.
    *
-   * [tCa]Eff and [Ca2+]sol must be supplied. There is no default bag
-   * strength, and the paper’s typical [tCa]Eff is a range (1.6–2 mmol/L),
-   * not a single starting constant. The Prismocitrate 18 trial does not
-   * publish a starting calcium rate or titration table.
-   */
-  function calciumReplacementStartRate(opts) {
-    opts = opts || {};
-    const tCaEff = req("effluent calcium", opts.tCaEffMmolPerL);
-    const qEff = req("effluent rate", opts.qEffMlH);
-    const cSol = req("calcium solution concentration", opts.caSolMmolPerL);
-    if (tCaEff <= 0) throw new Error("effluent calcium must be positive");
-    if (qEff <= 0) throw new Error("effluent rate must be positive");
-    if (cSol <= 0) throw new Error("calcium solution concentration must be positive");
-    return {
-      tCaEffMmolPerL: tCaEff,
-      qEffMlH: qEff,
-      caSolMmolPerL: cSol,
-      rateMlH: (tCaEff * qEff) / cSol,
-    };
-  }
-
-  /**
-   * Use a calculated Prismocitrate 18 rate as pre-filter replacement.
-   * The solution is itself pre-dilution replacement (trial and label:
-   * pre-dilution mode only). Post-filter and dialysate from the
-   * dose-based suggestion are left unchanged; they are not reduced to
-   * keep the effluent-dose target (no published compensation scheme
-   * is applied here).
+   *   CVVH post:  qpost = max(0, remaining − citrate)
+   *   CVVH pre:   additional pre-filter replacement = max(0, remaining − citrate)
+   *   CVVH mixed: subtract citrate from total replacement, then split the
+   *               remainder by preFraction (app default 0.5). Judgment:
+   *               the split is of what is left after citrate, not a
+   *               50/50 of the original total (citrate already occupies
+   *               the pre-filter side).
+   *   CVVHDF:     subtract citrate from the replacement side first; if
+   *               replacement reaches 0, reduce dialysate. Any leftover
+   *               replacement is split by preFraction.
+   *   CVVHD:      qd = max(0, remaining − citrate)
+   *   SCUF:       no dose target; nothing is reduced. qeff = citrate + net UF.
+   *
+   * If citrate alone exceeds remaining, other fluids are set to 0 and
+   * citrateExceedsTarget is true. Prescribed Qeff is then citrate + net UF.
    */
   function applyPrismocitratePreFilter(opts) {
     opts = opts || {};
     const cit = req("citrate rate", opts.citrateRateMlH);
     if (cit <= 0) throw new Error("citrate rate must be positive");
-    const qpost = isNum(opts.qpostMlH) ? opts.qpostMlH : 0;
-    const qd = isNum(opts.qdMlH) ? opts.qdMlH : 0;
+    const modality = opts.modality || "cvvh-post";
     const qnet = isNum(opts.qnetMlH) ? opts.qnetMlH : 0;
-    const doseQpre = isNum(opts.doseBasedQpreMlH) ? opts.doseBasedQpreMlH : null;
+    const preFrac = isNum(opts.preFraction) ? opts.preFraction : 0.5;
+    const dFrac = isNum(opts.dialysateFraction) ? opts.dialysateFraction : 0.5;
+    if (preFrac < 0 || preFrac > 1) throw new Error("preFraction must be 0–1");
+    if (dFrac < 0 || dFrac > 1) throw new Error("dialysateFraction must be 0–1");
+
+    if (modality === "scuf") {
+      return {
+        modality,
+        qpreMlH: 0,
+        qpostMlH: 0,
+        qdMlH: 0,
+        qnetMlH: qnet,
+        qeffMlH: cit + qnet,
+        citrateRateMlH: cit,
+        remainingMlH: null,
+        citrateExceedsTarget: false,
+        citrateCountedTowardDose: false,
+      };
+    }
+
+    let remaining;
+    if (isNum(opts.remainingMlH)) {
+      remaining = opts.remainingMlH;
+    } else if (isNum(opts.qeffTargetMlH)) {
+      remaining = opts.qeffTargetMlH - qnet;
+    } else {
+      const origPre = isNum(opts.doseBasedQpreMlH)
+        ? opts.doseBasedQpreMlH
+        : (isNum(opts.qpreMlH) ? opts.qpreMlH : 0);
+      const origPost = isNum(opts.qpostMlH) ? opts.qpostMlH : 0;
+      const origQd = isNum(opts.qdMlH) ? opts.qdMlH : 0;
+      remaining = origPre + origPost + origQd;
+    }
+
+    let qpre = 0;
+    let qpost = 0;
+    let qd = 0;
+    const exceeds = remaining - cit < -0.05;
+    if (!exceeds) {
+      const leftover = Math.max(0, remaining - cit);
+      switch (modality) {
+        case "cvvh-pre":
+          qpre = leftover;
+          break;
+        case "cvvh-post":
+          qpost = leftover;
+          break;
+        case "cvvh-mixed":
+          qpre = leftover * preFrac;
+          qpost = leftover * (1 - preFrac);
+          break;
+        case "cvvhd":
+          qd = leftover;
+          break;
+        case "cvvhdf": {
+          const origRep = remaining * (1 - dFrac);
+          const origQd = remaining * dFrac;
+          if (cit <= origRep + 0.05) {
+            const repLeft = Math.max(0, origRep - cit);
+            qpre = repLeft * preFrac;
+            qpost = repLeft * (1 - preFrac);
+            qd = origQd;
+          } else {
+            qpre = 0;
+            qpost = 0;
+            qd = Math.max(0, remaining - cit);
+          }
+          break;
+        }
+        default:
+          throw new Error("Unknown modality: " + modality);
+      }
+    }
+
     return {
-      qpreMlH: cit,
+      modality,
+      qpreMlH: qpre,
       qpostMlH: qpost,
       qdMlH: qd,
       qnetMlH: qnet,
-      qeffMlH: cit + qpost + qd + qnet,
-      doseBasedQpreMlH: doseQpre,
-      preFilterDiffersFromDoseSplit: doseQpre !== null && Math.abs(doseQpre - cit) > 0.05,
+      qeffMlH: cit + qpre + qpost + qd + qnet,
+      citrateRateMlH: cit,
+      remainingMlH: remaining,
+      citrateExceedsTarget: exceeds,
+      citrateCountedTowardDose: true,
     };
   }
 
@@ -558,7 +616,6 @@
     kdigoDoseStatus,
     citrateCalciumRatio,
     prismocitrate18Rate,
-    calciumReplacementStartRate,
     applyPrismocitratePreFilter,
     heparinBolus,
     heparinInfusion,

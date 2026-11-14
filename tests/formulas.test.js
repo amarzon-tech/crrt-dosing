@@ -365,8 +365,7 @@ eq(F.TARGETS.FF_WARN, 0.25, "FF warning 25% (Murugan/Mehta 2016)");
 isTrue(F.pdWeeklyKtv === undefined && F.watsonTbw === undefined, "no PD functions in the standalone app");
 eq(F.TARGETS.CITRATE_DOSE_DEFAULT, 3, "default citrate target 3 mmol/L blood (NCT05399537)");
 eq(F.TARGETS.PRISMOCITRATE18_MMOL_PER_L, 18, "Prismocitrate 18 concentration 18 mmol/L (IFU/SmPC)");
-eq(F.TARGETS.EFFLUENT_TCA_RANGE_MIN, 1.6, "published effluent Ca range min (display only)");
-eq(F.TARGETS.EFFLUENT_TCA_RANGE_MAX, 2, "published effluent Ca range max (display only)");
+isTrue(F.TARGETS.EFFLUENT_TCA_RANGE_MIN === undefined && F.calciumReplacementStartRate === undefined, "calcium start-rate calculator and effluent-Ca defaults are removed");
 
 /* ── Prismocitrate 18 rate and calcium start ─────────────────────────────── */
 section("Prismocitrate 18 rate (Qb × 60 × target / 18)");
@@ -379,47 +378,171 @@ eq(F.prismocitrate18Rate({ qbMlMin: 150 }).targetMmolPerLBlood, 3, "default targ
 throws(() => F.prismocitrate18Rate({ qbMlMin: 0 }), "Qb 0 throws");
 throws(() => F.prismocitrate18Rate({ qbMlMin: 150, targetMmolPerLBlood: 0 }), "target 0 throws");
 
-section("Apply Prismocitrate 18 as pre-filter replacement");
+section("Apply Prismocitrate 18 — count toward dose and cut other rates (80 kg, 25 mL/kg/h, Qb 150 → 1,500 mL/h)");
+const remaining2000 = 2000; // 25 * 80, net UF 0
 const postRec = F.applyPrismocitratePreFilter({
   citrateRateMlH: 1500,
-  qpostMlH: 2000,
+  modality: "cvvh-post",
+  remainingMlH: remaining2000,
+  qnetMlH: 0,
+});
+eq(postRec.qpreMlH, 0, "CVVH post: no additional pre-filter replacement");
+eq(postRec.qpostMlH, 500, "CVVH post: post-filter reduced to 500 mL/h");
+eq(postRec.qdMlH, 0, "CVVH post: no dialysate");
+eq(postRec.qeffMlH, 2000, "CVVH post: citrate 1,500 + post 500 = 2,000 mL/h");
+isTrue(postRec.citrateCountedTowardDose, "CVVH post: citrate is counted toward the dose");
+isTrue(!postRec.citrateExceedsTarget, "CVVH post: citrate does not exceed the target");
+
+const dosePost = F.crrtEffluentDose({
+  weightKg: 80,
+  qpreMlH: 1500,
+  qpostMlH: postRec.qpostMlH,
   qdMlH: 0,
   qnetMlH: 0,
-  doseBasedQpreMlH: 0,
+  qbMlMin: 150,
+  hct: 0.30,
 });
-eq(postRec.qpreMlH, 1500, "CVVH post: pre-filter becomes the citrate rate");
-eq(postRec.qpostMlH, 2000, "CVVH post: post-filter is not auto-reduced");
-eq(postRec.qeffMlH, 3500, "CVVH post: effluent is citrate + post (exceeds a 2,000 target)");
-isTrue(postRec.preFilterDiffersFromDoseSplit, "flags that dose-based Qpre was 0");
+eq(dosePost.prescribedMlKgH, 25, "CVVH post: prescribed dose stays 25 mL/kg/h");
+eq(dosePost.qeffMlH, 2000, "CVVH post: effluent used for the dose is 2,000 mL/h");
 
 const preRec = F.applyPrismocitratePreFilter({
   citrateRateMlH: 1500,
-  qpostMlH: 0,
-  qdMlH: 0,
+  modality: "cvvh-pre",
+  remainingMlH: remaining2000,
   qnetMlH: 0,
-  doseBasedQpreMlH: 2000,
 });
-eq(preRec.qpreMlH, 1500, "CVVH pre: citrate rate replaces the dose-based pre-filter rate");
-eq(preRec.qeffMlH, 1500, "CVVH pre: effluent follows the citrate rate, not the 2,000 target");
+eq(preRec.qpreMlH, 500, "CVVH pre: remainder is additional pre-filter replacement");
+eq(preRec.qpostMlH, 0, "CVVH pre: no post-filter");
+eq(preRec.qeffMlH, 2000, "CVVH pre: citrate 1,500 + pre 500 = 2,000 mL/h");
+
+const mixRec = F.applyPrismocitratePreFilter({
+  citrateRateMlH: 1500,
+  modality: "cvvh-mixed",
+  remainingMlH: remaining2000,
+  qnetMlH: 0,
+  preFraction: 0.5,
+});
+eq(mixRec.qpreMlH, 250, "CVVH mixed: leftover 500 split 50/50 → additional pre 250");
+eq(mixRec.qpostMlH, 250, "CVVH mixed: leftover 500 split 50/50 → post 250");
+eq(mixRec.qeffMlH, 2000, "CVVH mixed: total effluent stays 2,000 mL/h");
+
+const hdfPost = F.applyPrismocitratePreFilter({
+  citrateRateMlH: 1500,
+  modality: "cvvhdf",
+  remainingMlH: remaining2000,
+  qnetMlH: 0,
+  preFraction: 0,
+  dialysateFraction: 0.5,
+});
+eq(hdfPost.qpreMlH, 0, "CVVHDF post: replacement side exhausted");
+eq(hdfPost.qpostMlH, 0, "CVVHDF post: no leftover post-filter");
+eq(hdfPost.qdMlH, 500, "CVVHDF: dialysate reduced after replacement hits 0");
+eq(hdfPost.qeffMlH, 2000, "CVVHDF: citrate 1,500 + dialysate 500 = 2,000 mL/h");
+
+const hdfMixSmall = F.applyPrismocitratePreFilter({
+  citrateRateMlH: 800,
+  modality: "cvvhdf",
+  remainingMlH: remaining2000,
+  qnetMlH: 0,
+  preFraction: 0.5,
+  dialysateFraction: 0.5,
+});
+eq(hdfMixSmall.qdMlH, 1000, "CVVHDF mixed, citrate 800: dialysate unchanged at 1,000");
+eq(hdfMixSmall.qpreMlH, 100, "CVVHDF mixed, citrate 800: leftover replacement 200 split pre 100");
+eq(hdfMixSmall.qpostMlH, 100, "CVVHDF mixed, citrate 800: leftover replacement split post 100");
+eq(hdfMixSmall.qeffMlH, 2000, "CVVHDF mixed, citrate 800: total stays 2,000 mL/h");
+
+const hdRec = F.applyPrismocitratePreFilter({
+  citrateRateMlH: 1500,
+  modality: "cvvhd",
+  remainingMlH: remaining2000,
+  qnetMlH: 0,
+});
+eq(hdRec.qdMlH, 500, "CVVHD: dialysate reduced by citrate");
+eq(hdRec.qpreMlH, 0, "CVVHD: no additional pre-filter replacement");
+eq(hdRec.qeffMlH, 2000, "CVVHD: citrate 1,500 + dialysate 500 = 2,000 mL/h");
+
+const netRec = F.applyPrismocitratePreFilter({
+  citrateRateMlH: 1500,
+  modality: "cvvh-post",
+  remainingMlH: 1800, // 2000 - 200 net UF
+  qnetMlH: 200,
+});
+eq(netRec.qpostMlH, 300, "net UF 200: post-filter is remaining 1,800 − citrate 1,500");
+eq(netRec.qeffMlH, 2000, "net UF is included in the 2,000 mL/h target effluent");
 
 const scufRec = F.applyPrismocitratePreFilter({
   citrateRateMlH: 1500,
-  qpostMlH: 0,
-  qdMlH: 0,
+  modality: "scuf",
   qnetMlH: 100,
-  doseBasedQpreMlH: 0,
 });
 eq(scufRec.qeffMlH, 1600, "SCUF + citrate: effluent is citrate rate + net UF");
+eq(scufRec.qpostMlH, 0, "SCUF: nothing to reduce");
+isTrue(!scufRec.citrateCountedTowardDose, "SCUF has no dose target, so citrate is not cut to one");
+isTrue(!scufRec.citrateExceedsTarget, "SCUF does not flag an over-target dose");
 
-section("Calcium replacement start (Yessayan 2025); no invented defaults");
-const ca = F.calciumReplacementStartRate({ tCaEffMmolPerL: 2, qEffMlH: 2000, caSolMmolPerL: 136 });
-eq(Math.round(ca.rateMlH * 1000) / 1000, Math.round((2 * 2000 / 136) * 1000) / 1000, "2 mmol/L × 2000 / 136 mmol/L");
-isTrue(Math.abs(ca.rateMlH - 29.412) < 0.01, "near the paper’s worked ~29 mL/h example");
-const caLow = F.calciumReplacementStartRate({ tCaEffMmolPerL: 1.6, qEffMlH: 2000, caSolMmolPerL: 136 });
-isTrue(Math.abs(caLow.rateMlH - (1.6 * 2000 / 136)) < 1e-9, "uses the entered 1.6, not a midpoint default");
-throws(() => F.calciumReplacementStartRate({ qEffMlH: 2000, caSolMmolPerL: 136 }), "missing effluent Ca throws — no default");
-throws(() => F.calciumReplacementStartRate({ tCaEffMmolPerL: 2, qEffMlH: 2000 }), "missing bag strength throws — no default");
-throws(() => F.calciumReplacementStartRate({ tCaEffMmolPerL: 0, qEffMlH: 2000, caSolMmolPerL: 136 }), "effluent Ca 0 throws");
+section("Citrate alone exceeds the target dose");
+const over = F.applyPrismocitratePreFilter({
+  citrateRateMlH: 2500, // Qb 250 at target 3
+  modality: "cvvh-post",
+  remainingMlH: remaining2000,
+  qnetMlH: 0,
+});
+eq(over.qpostMlH, 0, "over-target: post-filter set to 0");
+eq(over.qpreMlH, 0, "over-target: no additional pre-filter");
+eq(over.qdMlH, 0, "over-target: no dialysate");
+eq(over.qeffMlH, 2500, "over-target: effluent is citrate alone");
+isTrue(over.citrateExceedsTarget, "over-target flag is set");
+eq(over.qeffMlH / 80, 31.25, "over-target prescribed dose is 31.25 mL/kg/h");
+
+const overHdf = F.applyPrismocitratePreFilter({
+  citrateRateMlH: 2500,
+  modality: "cvvhdf",
+  remainingMlH: remaining2000,
+  qnetMlH: 0,
+  preFraction: 0,
+  dialysateFraction: 0.5,
+});
+eq(overHdf.qdMlH, 0, "over-target CVVHDF: dialysate also set to 0");
+isTrue(overHdf.citrateExceedsTarget, "over-target CVVHDF flag");
+
+section("Filtration fraction counts all pre/post fluids after the citrate cut");
+const ffPost = F.filtrationFraction({
+  qbMlMin: 150,
+  hct: 0.30,
+  qpreMlH: 1500,
+  qpostMlH: 500,
+  qnetMlH: 0,
+  modality: "cvvh",
+});
+eq(ffPost.qufMlH, 2000, "CVVH post + citrate: UF is citrate + post");
+isTrue(Math.abs(ffPost.ffUsedPct - (2000 / (150 * 60 * 0.7 + 1500)) * 100) < 1e-9, "FF uses pre-style denominator Qp + citrate");
+
+const ffPre = F.filtrationFraction({
+  qbMlMin: 150,
+  hct: 0.30,
+  qpreMlH: 2000, // citrate 1500 + extra 500
+  qpostMlH: 0,
+  qnetMlH: 0,
+  modality: "cvvh",
+});
+eq(ffPre.qufMlH, 2000, "CVVH pre + citrate: UF is all pre-filter fluid");
+isTrue(Math.abs(ffPre.ffUsedPct - (2000 / (150 * 60 * 0.7 + 2000)) * 100) < 1e-9, "FF denominator includes citrate + extra pre");
+
+section("Heparin path is unaffected by the citrate dose cut");
+const hepSuggest = F.suggestCrrtPrescription({
+  weightKg: 80,
+  targetMlKgH: 25,
+  qnetMlH: 0,
+  modality: "cvvh-post",
+});
+eq(hepSuggest.qpostMlH, 2000, "without citrate, CVVH post remains 2,000 mL/h");
+eq(hepSuggest.qpreMlH, 0, "without citrate, no pre-filter replacement");
+eq(hepSuggest.qeffMlH, 2000, "without citrate, effluent is the 25 mL/kg/h target");
+const hepB2 = F.heparinBolus({ weightKg: 80, bolusIuPerKg: 30, giveBolus: true });
+eq(hepB2.bolusUnits, 2400, "heparin bolus 30 IU/kg × 80 kg is unchanged");
+const hepI2 = F.heparinInfusion({ weightKg: 80, rateIuPerKgH: 7 });
+eq(hepI2.rateUnitsH, 560, "heparin infusion 7 IU/kg/h × 80 kg is unchanged");
 
 /* ── summary ────────────────────────────────────────────────────────────── */
 console.log("\n────────────────────────────────────────");
