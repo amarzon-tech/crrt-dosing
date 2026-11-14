@@ -1,17 +1,17 @@
-/* CRRT & PD Dosing — native-feeling, calm teal/navy. No medical math here. */
+/* CRRT Dosing — clinical blue base. Warning/draft colors stay amber or red. No medical math here. */
 
 :root {
-  --bg: #eef3f5;
+  --bg: #eef2f8;
   --bg-elevated: #ffffff;
-  --bg-sunken: #e4eaee;
-  --ink: #0b1c24;
-  --ink-secondary: #3e5360;
-  --ink-tertiary: #5d7380;
-  --teal: #0c6b6e;
-  --teal-deep: #08484c;
-  --teal-soft: #dcefee;
-  --teal-mid: #14908c;
-  --navy: #102a3a;
+  --bg-sunken: #e3e9f3;
+  --ink: #0b1830;
+  --ink-secondary: #3a4f6a;
+  --ink-tertiary: #5a6e86;
+  --teal: #1e63d6;
+  --teal-deep: #1348a8;
+  --teal-soft: #e7f0fc;
+  --teal-mid: #3d7ae8;
+  --navy: #123a7a;
   --amber: #9a4d08;
   --amber-bg: #fff1d6;
   --amber-ink: #6b3500;
@@ -24,10 +24,10 @@
   --draft-bg: #fff4cc;
   --draft-ink: #5c4300;
   --draft-border: #e8c860;
-  --hairline: rgba(11, 28, 36, 0.09);
-  --hairline-strong: rgba(11, 28, 36, 0.16);
-  --shadow: 0 1px 2px rgba(16, 42, 58, 0.05), 0 10px 28px rgba(16, 42, 58, 0.07);
-  --shadow-sheet: 0 -8px 40px rgba(16, 42, 58, 0.18);
+  --hairline: rgba(11, 24, 48, 0.09);
+  --hairline-strong: rgba(11, 24, 48, 0.16);
+  --shadow: 0 1px 2px rgba(18, 58, 122, 0.05), 0 10px 28px rgba(18, 58, 122, 0.07);
+  --shadow-sheet: 0 -8px 40px rgba(18, 58, 122, 0.18);
   --radius-card: 20px;
   --radius-ctl: 14px;
   --radius-pill: 999px;
@@ -46,17 +46,17 @@
 }
 
 [data-theme="dark"] {
-  --bg: #071016;
-  --bg-elevated: #101a22;
-  --bg-sunken: #0b141b;
-  --ink: #e8f0f3;
-  --ink-secondary: #b0c2cb;
-  --ink-tertiary: #87a0ab;
-  --teal: #3dbab4;
-  --teal-deep: #1f8a85;
-  --teal-soft: #153230;
-  --teal-mid: #4fd0c9;
-  --navy: #c5d8e0;
+  --bg: #0b1220;
+  --bg-elevated: #101a2a;
+  --bg-sunken: #0c1524;
+  --ink: #e8f0ff;
+  --ink-secondary: #b8c9e0;
+  --ink-tertiary: #8aa0bd;
+  --teal: #7eb0ff;
+  --teal-deep: #9bc2ff;
+  --teal-soft: #15305a;
+  --teal-mid: #8bbcff;
+  --navy: #d6e4f7;
   --amber: #f0b354;
   --amber-bg: #3a2a12;
   --amber-ink: #f8d7a0;
@@ -69,8 +69,8 @@
   --draft-bg: #3a3110;
   --draft-ink: #f3e1a0;
   --draft-border: #7a6820;
-  --hairline: rgba(232, 240, 243, 0.1);
-  --hairline-strong: rgba(232, 240, 243, 0.18);
+  --hairline: rgba(232, 240, 255, 0.1);
+  --hairline-strong: rgba(232, 240, 255, 0.18);
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 32px rgba(0, 0, 0, 0.35);
   --shadow-sheet: 0 -8px 40px rgba(0, 0, 0, 0.5);
   color-scheme: dark;
@@ -78,17 +78,17 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #071016;
-    --bg-elevated: #101a22;
-    --bg-sunken: #0b141b;
-    --ink: #e8f0f3;
-    --ink-secondary: #b0c2cb;
-    --ink-tertiary: #87a0ab;
-    --teal: #3dbab4;
-    --teal-deep: #1f8a85;
-    --teal-soft: #153230;
-    --teal-mid: #4fd0c9;
-    --navy: #c5d8e0;
+    --bg: #0b1220;
+    --bg-elevated: #101a2a;
+    --bg-sunken: #0c1524;
+    --ink: #e8f0ff;
+    --ink-secondary: #b8c9e0;
+    --ink-tertiary: #8aa0bd;
+    --teal: #7eb0ff;
+    --teal-deep: #9bc2ff;
+    --teal-soft: #15305a;
+    --teal-mid: #8bbcff;
+    --navy: #d6e4f7;
     --amber: #f0b354;
     --amber-bg: #3a2a12;
     --amber-ink: #f8d7a0;
@@ -101,8 +101,8 @@
     --draft-bg: #3a3110;
     --draft-ink: #f3e1a0;
     --draft-border: #7a6820;
-    --hairline: rgba(232, 240, 243, 0.1);
-    --hairline-strong: rgba(232, 240, 243, 0.18);
+    --hairline: rgba(232, 240, 255, 0.1);
+    --hairline-strong: rgba(232, 240, 255, 0.18);
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 32px rgba(0, 0, 0, 0.35);
     --shadow-sheet: 0 -8px 40px rgba(0, 0, 0, 0.5);
     color-scheme: dark;
@@ -218,7 +218,7 @@ h1 {
   height: var(--seg-h);
   background: var(--bg-elevated);
   border-radius: 10px;
-  box-shadow: 0 1px 3px rgba(16, 42, 58, 0.12), 0 4px 12px rgba(16, 42, 58, 0.06);
+  box-shadow: 0 1px 3px rgba(18, 58, 122, 0.12), 0 4px 12px rgba(18, 58, 122, 0.06);
   transform: translateX(0);
   transition: transform var(--dur) var(--ease);
   z-index: 0;
@@ -444,7 +444,7 @@ input[type="range"]::-webkit-slider-thumb {
   border-radius: 50%;
   background: var(--teal);
   border: 3px solid var(--bg-elevated);
-  box-shadow: 0 1px 4px rgba(16, 42, 58, 0.25);
+  box-shadow: 0 1px 4px rgba(18, 58, 122, 0.25);
   cursor: pointer;
 }
 input[type="range"]:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--teal); outline-offset: 2px; }
@@ -460,11 +460,11 @@ input[type="range"]:focus-visible::-webkit-slider-thumb { outline: 2px solid var
 }
 [data-theme="dark"] .sticky-result,
 :root:not([data-theme="light"]) .sticky-result {
-  background: #163140;
-  color: #eef6f8;
+  background: #15305a;
+  color: #eef4ff;
 }
 @media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) .sticky-result { background: #102a3a; color: #f3f8fa; }
+  :root:not([data-theme="dark"]) .sticky-result { background: #123a7a; color: #f3f8fa; }
 }
 
 .sticky-result .kicker {
@@ -550,12 +550,12 @@ input[type="range"]:focus-visible::-webkit-slider-thumb { outline: 2px solid var
     bottom: 0;
     z-index: 35;
     padding: 10px 18px calc(10px + var(--safe-b));
-    background: #102a3a;
+    background: #123a7a;
     color: #f3f8fa;
-    box-shadow: 0 -8px 28px rgba(16, 42, 58, 0.25);
+    box-shadow: 0 -8px 28px rgba(18, 58, 122, 0.25);
   }
   [data-theme="dark"] .dock,
-  :root:not([data-theme="light"]) .dock { background: #163140; }
+  :root:not([data-theme="light"]) .dock { background: #15305a; }
   .dock .dv {
     font-size: 22px;
     font-weight: 700;
