@@ -186,6 +186,28 @@ section("Suggested prescription from target dose (KDIGO default 25 mL/kg/h)");
   const s = F.suggestCrrtPrescription({
     weightKg: 80,
     targetMlKgH: 25,
+    qnetMlH: 100,
+    modality: "cvvhdf",
+  });
+  approx(s.qdMlH, 950, 1e-12, "CVVHDF default 50% dialysate");
+  approx(s.qpreMlH, 475, 1e-12, "CVVHDF default 50% of replacement is pre");
+  approx(s.qpostMlH, 475, 1e-12, "CVVHDF default 50% of replacement is post");
+}
+{
+  const s = F.suggestCrrtPrescription({
+    weightKg: 80,
+    targetMlKgH: 25,
+    qnetMlH: 100,
+    modality: "cvvh-mixed",
+  });
+  approx(s.qpreMlH, 950, 1e-12, "mixed default 50% pre");
+  approx(s.qpostMlH, 950, 1e-12, "mixed default 50% post");
+}
+
+{
+  const s = F.suggestCrrtPrescription({
+    weightKg: 80,
+    targetMlKgH: 25,
     qnetMlH: 2500,
     modality: "cvvh-post",
   });

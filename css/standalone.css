@@ -506,3 +506,9 @@ body { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
   color: var(--ink);
 }
 #ratio-card .ratio-subhead .h2-sub { font-weight: 600; }
+
+.split-note {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--ink-tertiary);
+}

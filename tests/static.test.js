@@ -105,6 +105,15 @@ isTrue(/id="c-ff"/.test(html) && /id="step-2"[\s\S]*?id="c-ff"/.test(html), "fil
 isTrue(/function showStep/.test(app), "wizard showStep is implemented");
 isTrue(/Enter the patient.s weight/.test(app), "weight is required before leaving step 2");
 
+
+section("Fixed 50/50 split, no sliders");
+isTrue(!/<input[^>]*type="range"/.test(html), "no split sliders");
+isTrue(!/id="c-d-frac"/.test(html) && !/id="c-pre-frac"/.test(html), "dialysate and predilution sliders are removed");
+isTrue(/id="c-split-note"/.test(html) && /Split fixed at 50\/50/.test(html), "one-line Split fixed at 50/50 note");
+isTrue(/syncSplitNote/.test(app) && /cvvh-mixed/.test(app) && /cvvhdf/.test(app), "note is shown for mixed and CVVHDF");
+isTrue(/const preFrac = 0\.5/.test(app) && /const dFrac = 0\.5/.test(app), "app locks both splits at 0.5");
+isTrue(/Dr D chose this on Nov 14 2026/.test(review), "CONTENT_REVIEW records that Dr D chose the fixed 50/50 split");
+
 section("Heparin bolus Yes / No");
 isTrue(/id="c-hep-bolus-lbl">Bolus</.test(html), "plain Bolus label");
 isTrue(/data-bolus="yes">Yes</.test(html) && /data-bolus="no">No</.test(html), "Yes / No toggle");

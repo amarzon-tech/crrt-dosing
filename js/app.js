@@ -88,10 +88,14 @@
   }
 
   let modality = "cvvh-post";
+  function syncSplitNote() {
+    const split = modality === "cvvh-mixed" || modality === "cvvhdf";
+    const note = $("c-split-note");
+    if (note) note.classList.toggle("hidden", !split);
+  }
   bindChips("c-mod", (btn) => {
     modality = btn.dataset.mod;
-    $("c-pre-wrap").classList.toggle("hidden", !(modality === "cvvh-mixed" || modality === "cvvhdf"));
-    $("c-d-wrap").classList.toggle("hidden", modality !== "cvvhdf");
+    syncSplitNote();
     recalc();
   });
 
@@ -135,16 +139,6 @@
     recalc();
   });
 
-  function bindSlider(id, outId) {
-    const el = $(id);
-    el.addEventListener("input", () => {
-      setText(outId, el.value + "%");
-      recalc();
-    });
-  }
-  bindSlider("c-pre-frac", "c-pre-out");
-  bindSlider("c-d-frac", "c-d-out");
-
   function bindUnit(id, units) {
     const b = $(id);
     b.addEventListener("click", () => {
@@ -183,8 +177,9 @@
     const qb = num($("c-qb"));
     const hct = num($("c-hct"));
     const down = num($("c-down"));
-    const preFrac = Number($("c-pre-frac").value) / 100;
-    const dFrac = Number($("c-d-frac").value) / 100;
+    // Splits are locked at 50/50 (Dr D, 14 Nov 2026). No slider.
+    const preFrac = 0.5;
+    const dFrac = 0.5;
 
     ["row-qpre", "row-qpost", "row-qd"].forEach((r) => {
       if ($(r)) $(r).classList.toggle("dim", ROWS_BY_MOD[modality].indexOf(r) < 0);
@@ -463,12 +458,12 @@
         Remaining = target effluent − net UF<br>
         CVVH post: remaining → post-filter replacement<br>
         CVVH pre: remaining → pre-filter replacement<br>
-        CVVH mixed: remaining split by the pre-filter share slider<br>
+        CVVH mixed: remaining split 50% pre-filter and 50% post-filter (fixed)<br>
         CVVHD: remaining → dialysate (UF is the only convection)<br>
-        CVVHDF: remaining split by the dialysate share slider, then replacement by the pre-filter share slider</p>
+        CVVHDF: remaining split 50% dialysate and 50% replacement, then replacement 50% pre-filter and 50% post-filter (fixed)</p>
         <h4>Caveats</h4>
         <ul>
-          <li>The mixed and CVVHDF sliders are starting splits for you to adjust — they are <strong>not</strong> guideline targets.</li>
+          <li>The 50/50 splits are fixed (Dr D, 14 Nov 2026). They are <strong>not</strong> a guideline target.</li>
           <li>If net UF already exceeds the target effluent, rates are not auto-filled and a warning is implied by the dose numbers.</li>
         </ul>`,
     },
@@ -837,6 +832,7 @@
   });
 
   /* first paint */
+  syncSplitNote();
   syncHeparinBolusUi();
   syncAnticoagPanels();
   syncQbChipsFromInput();

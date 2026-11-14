@@ -236,8 +236,9 @@
    *   CVVHD:      all remaining → Qd
    *   CVVHDF:     remaining × dialysateFraction → Qd; the rest is replacement,
    *               then split by preFraction.
-   * preFraction and dialysateFraction are starting splits for the clinician
-   * to adjust — they are NOT guideline targets.
+   * The app locks preFraction and dialysateFraction at 0.5 (50/50).
+   * These parameters remain so the equation can be tested at other splits.
+   * They are NOT guideline targets.
    */
   function suggestCrrtPrescription(opts) {
     const wt = req("weight", opts.weightKg);
