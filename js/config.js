@@ -11,7 +11,7 @@
   const CITRATE_DRAFT_LABEL = "Draft · awaiting Dr D sign-off";
   const APP_NAME = "CRRT Rx";
   const APP_VERSION = "1.0.0";
-  const SUPPORT_EMAIL = "amardamodar@gmail.com";
+  const SUPPORT_EMAIL = "akd.nephrology@gmail.com";
   const PUBLISHER = "Wellness Tech LLC";
 
   const config = { DRAFT, DRAFT_BANNER, CITRATE_DRAFT_LABEL, APP_NAME, APP_VERSION, SUPPORT_EMAIL, PUBLISHER };
