@@ -86,8 +86,17 @@
     const kind = (opts.anticoagulation || "").toLowerCase();
     const lines = [];
     if (kind === "citrate") {
-      // No citrate rates are calculated. Machine setting is protocol-driven only.
-      lines.push("Anticoagulation: Citrate per unit protocol");
+      if (usedRate(opts.citrateRateMlH)) {
+        lines.push("Anticoagulation: Citrate");
+      } else {
+        // Rate not calculated (for example, blood flow not entered).
+        lines.push("Anticoagulation: Citrate per unit protocol");
+      }
+      if (usedRate(opts.calciumRateMlH)) {
+        lines.push("Calcium infusion: " + qty(opts.calciumRateMlH, "mL/h", 1));
+      } else {
+        lines.push("Calcium: per unit protocol");
+      }
     } else if (kind === "heparin") {
       lines.push("Anticoagulation: Heparin");
       if (opts.heparinBolusGiven === false) {
@@ -135,10 +144,14 @@
       lines.push("Blood flow: " + qty(opts.qbMlMin, "mL/min", 0));
     }
     const scuf = (opts.modality || "").toLowerCase() === "scuf";
+    const citratePre = usedRate(opts.citrateRateMlH);
     if (!scuf && usedRate(opts.qdMlH)) {
       lines.push("Dialysate: " + qty(opts.qdMlH, "mL/h", 0));
     }
-    if (!scuf && usedRate(opts.qpreMlH)) {
+    if (citratePre) {
+      // Prismocitrate 18 is itself the pre-filter replacement; do not list it twice.
+      lines.push("Prismocitrate 18 (pre-filter): " + qty(opts.citrateRateMlH, "mL/h", 0));
+    } else if (!scuf && usedRate(opts.qpreMlH)) {
       lines.push("Pre-filter replacement: " + qty(opts.qpreMlH, "mL/h", 0));
     }
     if (!scuf && usedRate(opts.qpostMlH)) {

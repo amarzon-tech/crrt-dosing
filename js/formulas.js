@@ -46,6 +46,24 @@
     //   "optimal cutoff", citing Bakker et al. Clin Chem Lab Med 2006).
     CITRATE_RATIO_CUTOFF: 2.5,
     CITRATE_RATIO_CONSIDER: 2.25,
+    // Prismocitrate 18 / Regiocit regional citrate anticoagulation.
+    // Default target 3 mmol/L of blood: NCT05399537 (“indexed to the blood
+    //   flow rate (BFR) to achieve a target blood citrate concentration of
+    //   3 mmol/L of blood”). The Regiocit SmPC adult range is 3 to 4 mmol/L
+    //   of blood; that range is shown in the sources, not used as a default.
+    // Solution concentration 18 mmol/L: Prismocitrate 18/0 Instruction for
+    //   use (Bieffe Medital / Baxter), Specification “Citrate C6H5O73-
+    //   18 mmol/l”; confirmed by the Regiocit HPRA SmPC (same ionic
+    //   composition).
+    CITRATE_DOSE_DEFAULT: 3,
+    PRISMOCITRATE18_MMOL_PER_L: 18,
+    // Typical effluent total-calcium range from Yessayan, Tolwani, Heung,
+    //   Szamosfalvi, Kidney360 2025;7:1160–1167 (doi:10.34067/KID.0000001053):
+    //   “hourly calcium loss in 1 L of effluent typically ranges from 1.6
+    //   to 2 mmol” when plasma citrate accumulation is negligible. Display
+    //   and documentation only — never used as a calculation default.
+    EFFLUENT_TCA_RANGE_MIN: 1.6,
+    EFFLUENT_TCA_RANGE_MAX: 2,
     // Unfractionated heparin for CRRT. KDIGO AKI 2012 §5.3 does not recommend
     // a single numeric dose ("large variability"; "no firm recommendations").
     // Starting values below are the regimen used in the second of the two
@@ -370,6 +388,97 @@
 
 
 
+
+  /**
+   * Prismocitrate 18 pre-filter infusion rate.
+   *
+   *   Qcit (mL/h) = Qb (mL/min) × 60 × target (mmol/L blood) ÷ Ccit (mmol/L)
+   *
+   * This is the unit conversion of “indexed to the blood flow rate to achieve
+   * a target blood citrate concentration” (NCT05399537; Regiocit SmPC §4.2:
+   * the rate “depends on the targeted citrate dose and the prescribed blood
+   * flow rate,” and “the solution flow rate is automatically adapted based
+   * on an operator set target dose (mmol citrate/l blood)”). It is not a
+   * separately published coefficient.
+   *
+   * Default target: 3 mmol/L of blood (NCT05399537).
+   * Default Ccit: 18 mmol/L (Prismocitrate 18/0 IFU; Regiocit SmPC).
+   */
+  function prismocitrate18Rate(opts) {
+    opts = opts || {};
+    const qb = req("blood flow", opts.qbMlMin);
+    const target = isNum(opts.targetMmolPerLBlood)
+      ? opts.targetMmolPerLBlood
+      : TARGETS.CITRATE_DOSE_DEFAULT;
+    const conc = isNum(opts.citrateMmolPerL)
+      ? opts.citrateMmolPerL
+      : TARGETS.PRISMOCITRATE18_MMOL_PER_L;
+    if (qb <= 0) throw new Error("blood flow must be positive");
+    if (target <= 0) throw new Error("citrate target must be positive");
+    if (conc <= 0) throw new Error("citrate concentration must be positive");
+    return {
+      qbMlMin: qb,
+      targetMmolPerLBlood: target,
+      citrateMmolPerL: conc,
+      rateMlH: (qb * 60 * target) / conc,
+    };
+  }
+
+  /**
+   * Starting calcium infusion rate to replace effluent calcium loss.
+   * Yessayan L, Tolwani A, Heung M, Szamosfalvi B. Kidney360. 2025;7:1160–1167
+   * (doi:10.34067/KID.0000001053, PMID 41201866):
+   *
+   *   Calcium rate (mL/h) = [tCa]Eff × QEff / [Ca2+]sol
+   *
+   * [tCa]Eff and [Ca2+]sol must be supplied. There is no default bag
+   * strength, and the paper’s typical [tCa]Eff is a range (1.6–2 mmol/L),
+   * not a single starting constant. The Prismocitrate 18 trial does not
+   * publish a starting calcium rate or titration table.
+   */
+  function calciumReplacementStartRate(opts) {
+    opts = opts || {};
+    const tCaEff = req("effluent calcium", opts.tCaEffMmolPerL);
+    const qEff = req("effluent rate", opts.qEffMlH);
+    const cSol = req("calcium solution concentration", opts.caSolMmolPerL);
+    if (tCaEff <= 0) throw new Error("effluent calcium must be positive");
+    if (qEff <= 0) throw new Error("effluent rate must be positive");
+    if (cSol <= 0) throw new Error("calcium solution concentration must be positive");
+    return {
+      tCaEffMmolPerL: tCaEff,
+      qEffMlH: qEff,
+      caSolMmolPerL: cSol,
+      rateMlH: (tCaEff * qEff) / cSol,
+    };
+  }
+
+  /**
+   * Use a calculated Prismocitrate 18 rate as pre-filter replacement.
+   * The solution is itself pre-dilution replacement (trial and label:
+   * pre-dilution mode only). Post-filter and dialysate from the
+   * dose-based suggestion are left unchanged; they are not reduced to
+   * keep the effluent-dose target (no published compensation scheme
+   * is applied here).
+   */
+  function applyPrismocitratePreFilter(opts) {
+    opts = opts || {};
+    const cit = req("citrate rate", opts.citrateRateMlH);
+    if (cit <= 0) throw new Error("citrate rate must be positive");
+    const qpost = isNum(opts.qpostMlH) ? opts.qpostMlH : 0;
+    const qd = isNum(opts.qdMlH) ? opts.qdMlH : 0;
+    const qnet = isNum(opts.qnetMlH) ? opts.qnetMlH : 0;
+    const doseQpre = isNum(opts.doseBasedQpreMlH) ? opts.doseBasedQpreMlH : null;
+    return {
+      qpreMlH: cit,
+      qpostMlH: qpost,
+      qdMlH: qd,
+      qnetMlH: qnet,
+      qeffMlH: cit + qpost + qd + qnet,
+      doseBasedQpreMlH: doseQpre,
+      preFilterDiffersFromDoseSplit: doseQpre !== null && Math.abs(doseQpre - cit) > 0.05,
+    };
+  }
+
   /**
    * Unfractionated heparin bolus in units from weight and a units/kg dose.
    * Arithmetic only. Starting 30 IU/kg is the Joannidis 2007 ICM / KDIGO
@@ -448,6 +557,9 @@
     deliveredDose,
     kdigoDoseStatus,
     citrateCalciumRatio,
+    prismocitrate18Rate,
+    calciumReplacementStartRate,
+    applyPrismocitratePreFilter,
     heparinBolus,
     heparinInfusion,
   };

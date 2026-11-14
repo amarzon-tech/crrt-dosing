@@ -68,7 +68,9 @@ includes(crrt.text, "Modality: CVVH (post-filter replacement)", "modality");
 includes(crrt.text, "Blood flow: 200 mL/min", "blood flow");
 includes(crrt.text, "Post-filter replacement: 2,000 mL/h", "post-filter rate");
 includes(crrt.text, "Patient fluid removal: 0 mL/h", "net UF including a zero goal");
-includes(crrt.text, "Anticoagulation: Citrate per unit protocol", "citrate wording");
+includes(crrt.text, "Anticoagulation: Citrate per unit protocol", "citrate wording when no rate is calculated");
+includes(crrt.text, "Calcium: per unit protocol", "calcium stays protocol-only without entered solution values");
+excludes(crrt.text, "Prismocitrate 18 (pre-filter)", "no Prismocitrate rate without citrateRateMlH");
 excludes(crrt.text, "Pre-filter replacement", "omits unused pre-filter line");
 excludes(crrt.text, "Dialysate:", "omits unused / zero dialysate");
 excludes(crrt.text, "Weight:", "weight is not on the prescription card");
@@ -249,6 +251,55 @@ const scufDc = Rx.formatDoseCheck({ modality: "scuf", weightKg: 80, prescribedMl
 excludes(scufDc.text, "Prescribed dose", "SCUF dose check hides prescribed dose");
 excludes(scufDc.text, "Delivered dose", "SCUF dose check hides delivered dose");
 includes(scufDc.text, "Filtration fraction: 2.4%", "SCUF dose check can show FF");
+
+section("Machine prescription — citrate rate and optional calcium");
+const citRx = Rx.formatCrrtPrescription({
+  date: DATE,
+  weightKg: 80,
+  modality: "cvvh-post",
+  targetMlKgH: 25,
+  qbMlMin: 150,
+  qpreMlH: 1500,
+  qpostMlH: 2000,
+  qdMlH: 0,
+  qnetMlH: 0,
+  anticoagulation: "citrate",
+  citrateRateMlH: 1500,
+});
+includes(citRx.text, "Blood flow: 150 mL/min", "citrate rx blood flow");
+includes(citRx.text, "Prismocitrate 18 (pre-filter): 1,500 mL/h", "verified citrate rate is a machine line");
+includes(citRx.text, "Post-filter replacement: 2,000 mL/h", "post-filter remains");
+includes(citRx.text, "Anticoagulation: Citrate", "citrate label when a rate is calculated");
+includes(citRx.text, "Calcium: per unit protocol", "calcium protocol when no start rate");
+excludes(citRx.text, "Citrate per unit protocol", "protocol-only citrate line is replaced when a rate is verified");
+excludes(citRx.text, "Pre-filter replacement", "does not list pre-filter twice");
+
+const citCa = Rx.formatCrrtPrescription({
+  date: DATE,
+  modality: "cvvh-post",
+  qbMlMin: 150,
+  qpostMlH: 2000,
+  qnetMlH: 0,
+  anticoagulation: "citrate",
+  citrateRateMlH: 1500,
+  calciumRateMlH: 29.41176470588235,
+});
+includes(citCa.text, "Calcium infusion: 29.4 mL/h", "calculated calcium start rate on the card");
+excludes(citCa.text, "Calcium: per unit protocol", "protocol calcium line is replaced when a rate is verified");
+
+const scufCit = Rx.formatCrrtPrescription({
+  date: DATE,
+  modality: "scuf",
+  qbMlMin: 150,
+  qnetMlH: 100,
+  anticoagulation: "citrate",
+  citrateRateMlH: 1500,
+});
+includes(scufCit.text, "Modality: SCUF", "SCUF + citrate modality");
+includes(scufCit.text, "Prismocitrate 18 (pre-filter): 1,500 mL/h", "citrate pre-filter is shown even on SCUF");
+includes(scufCit.text, "Patient fluid removal: 100 mL/h", "SCUF net UF kept");
+excludes(scufCit.text, "Dialysate", "SCUF + citrate still has no dialysate");
+excludes(scufCit.text, "Post-filter", "SCUF + citrate has no post-filter line");
 
 console.log("\n────────────────────────────────────────");
 console.log(`Passed: ${passed}   Failed: ${failed}`);

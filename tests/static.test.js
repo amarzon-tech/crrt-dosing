@@ -72,7 +72,7 @@ textInputs.forEach((i) => {
   isTrue(/inputmode="(decimal|numeric)"/.test(i), id + ": numeric keypad");
   isTrue(/aria-label="[^"]+"/.test(i), id + ": has a label");
 });
-isTrue(textInputs.length === 11, "11 number fields total (step 2: qb/weight/hct/qnet; step 3 heparin 3; step 4 target/downtime + calcium 2); got " + textInputs.length);
+isTrue(textInputs.length === 14, "14 number fields total (step 2: qb/weight/hct/qnet; step 3 heparin 3 + citrate target + optional Ca 2; step 4 target/downtime + calcium ratio 2); got " + textInputs.length);
 isTrue(!/>\s*Calculate\s*</i.test(html), "no Calculate button");
 isTrue(/id="c-target"[^>]*value="25"/.test(html), "target dose prefilled 25");
 isTrue(/id="c-down"[^>]*value="10"/.test(html), "downtime prefilled 10");
@@ -127,7 +127,7 @@ isTrue(/c-cvvh-repl-wrap"[\s\S]*toggle\("hidden", !\(cvvh \|\| hdf\)\)/.test(app
 isTrue(/id="c-scuf-mod-note"/.test(html) && /no dialysate, replacement fluid, or dose target/.test(html), "SCUF step-1 note");
 isTrue(/id="c-qnet-scuf-msg"/.test(html) && /fluid removal rate greater than 0/.test(html), "SCUF net UF prompt");
 isTrue(/Weight is optional for SCUF/.test(app), "weight is optional for SCUF");
-isTrue(/modality: "scuf"/.test(app) && /optional-card/.test(app), "dose target card is hidden for SCUF");
+isTrue(/optional-card/.test(app) && /classList\.toggle\("hidden", scuf\)/.test(app), "dose target card is hidden for SCUF");
 isTrue(/dc-pres-row/.test(app) && /dc-del-row/.test(app), "prescribed and delivered dose rows hide for SCUF");
 isTrue(!/SCUF/.test(app + html) ? false : true, "SCUF is named in the app");
 isTrue(/Dr D.s Nov 14 2026 request/.test(review) || /asked why CVVH had pre, post and mixed/.test(review), "CONTENT_REVIEW notes Dr D’s Nov 14 2026 request");
@@ -165,7 +165,10 @@ isTrue(/id="dose-check-card"/.test(html) && /id="dc-pres"/.test(html) && /id="dc
 const rxjs = read("js/prescription.js");
 isTrue(!(html + app + rxjs).includes("Fluid composition / bath"), "no bath composition section in the app");
 isTrue(!/Bicarbonate/.test(rxjs), "prescription formatter does not mention bicarbonate");
-isTrue(/Citrate per unit protocol/.test(rxjs), "citrate machine line is protocol-only");
+isTrue(/Citrate per unit protocol/.test(rxjs), "protocol-only citrate line remains when no rate is calculated");
+isTrue(/Prismocitrate 18 \(pre-filter\)/.test(rxjs), "verified citrate rate uses a Prismocitrate 18 machine line");
+isTrue(/Calcium: per unit protocol/.test(rxjs), "calcium stays protocol-only without entered values");
+isTrue(/Calcium infusion:/.test(rxjs), "calculated calcium start rate can appear on the card");
 isTrue(/Patient fluid removal:/.test(rxjs), "prescription lists patient fluid removal");
 isTrue(/formatDoseCheck/.test(rxjs) && /Prescribed dose:/.test(rxjs), "prescribed dose lives in the dose-check formatter");
 isTrue(/Weight:/.test(rxjs), "weight helper remains for the dose check");
@@ -199,7 +202,7 @@ section("Prismocitrate 18 reference protocol (NCT05399537)");
 ["Reference protocol: Prismocitrate 18 (NCT05399537)", "not a Bon Secours Richmond policy",
  "0.25–0.35", "1.0–1.3", "&gt;2.5", "above 2.5", "pre-dilution only", "3 mmol/L of blood",
  "Child-Pugh score &gt;10", "lactate &gt;4 mmol/L", "prior citrate toxicity",
- "does not calculate citrate or calcium doses"].forEach((k) =>
+ "Calcium per unit protocol"].forEach((k) =>
   isTrue(html.includes(k), "protocol block mentions: " + k)
 );
 isTrue(html.includes("&lt;0.9") && html.includes("&gt;1.4"), "trial safety cut-offs <0.9 and >1.4 are shown");
@@ -207,7 +210,21 @@ isTrue(html.includes("NCT05399537") && html.includes("clinicaltrials.gov/study/N
 isTrue(/Main flag: a ratio <strong>above 2.5<\/strong>/.test(html), "ratio check names >2.5 as the main flag");
 isTrue(app.includes("Above 2.5 — accumulation by the trial definition"), "ratio reading uses the trial >2.5 wording");
 isTrue(app.includes("Above 2.25 — consider accumulation"), "softer >2.25 consider note is kept");
-isTrue(!/citrateInfusionRate|calciumReplacement|citrate dose calculator/i.test(html + app), "no citrate or calcium dose calculator added");
+section("Prismocitrate 18 and calcium rate calculation");
+isTrue(/id="citrate-calc"/.test(html) && /id="c-cit-target"/.test(html), "citrate rate block is in the citrate card");
+isTrue(/id="c-cit-target"[^>]*value="3"/.test(html), "citrate target is prefilled 3");
+isTrue(/>default 3</.test(html), "citrate target is labeled default 3");
+isTrue(/id="c-cit-rate"/.test(html) && /Prismocitrate 18 \(pre-filter\)/.test(html), "citrate rate output is shown");
+isTrue(/id="c-ca-eff"/.test(html) && /id="c-ca-sol"/.test(html) && /id="c-ca-rate"/.test(html), "optional calcium start fields are present");
+isTrue(/placeholder="—"/.test(html.match(/id="c-ca-eff"[^>]*/)[0]) && /placeholder="—"/.test(html.match(/id="c-ca-sol"[^>]*/)[0]), "calcium fields have no pre-filled defaults");
+isTrue(/1\.6–2 mmol\/L/.test(html), "published effluent Ca range is stated");
+isTrue(/Kidney360/.test(html) && /10\.34067\/KID\.0000001053/.test(html), "Yessayan 2025 source is listed");
+isTrue(/prismocitrate%2018-0\.pdf/.test(html) && /Licence_PA25288-008-001/.test(html), "IFU and Regiocit SmPC links are listed under Details");
+isTrue(/prismocitrate18Rate/.test(app) && /prismocitrate18Rate/.test(read("js/formulas.js")), "prismocitrate18Rate is implemented and used");
+isTrue(/anticoagulation === "citrate"/.test(app) && /c-cit-rate/.test(app), "citrate rate is computed only in the citrate path");
+isTrue(/applyPrismocitratePreFilter/.test(app), "citrate rate is reconciled as pre-filter replacement");
+isTrue(/not reduced automatically/.test(app), "dose-split post and dialysate are not auto-reduced");
+isTrue(/- \[ \] Sign-off: Prismocitrate 18 rate and calcium replacement start calculation/.test(review), "unticked sign-off item for the citrate and calcium calculation");
 
 console.log("\n────────────────────────────────────────");
 console.log(`Passed: ${passed}   Failed: ${failed}`);

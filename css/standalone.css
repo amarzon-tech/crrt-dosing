@@ -512,3 +512,14 @@ body { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
   font-size: 13px;
   color: var(--ink-tertiary);
 }
+
+/* Prismocitrate 18 / calcium rate block (shown only when citrate is selected) */
+.citrate-calc {
+  margin: 4px 0 14px;
+  padding: 10px 12px 8px;
+  border-radius: 14px;
+  background: var(--teal-soft);
+  border: 1.5px solid color-mix(in srgb, var(--teal) 28%, transparent);
+}
+.citrate-calc .compact-h { margin-top: 4px; }
+.citrate-calc .compact-h:first-child { margin-top: 0; }

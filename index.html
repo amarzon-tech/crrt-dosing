@@ -213,6 +213,49 @@
           </div>
           <p class="draft-tag" id="cit-draft-tag">Draft · awaiting Dr D sign-off</p>
 
+          <div class="citrate-calc" id="citrate-calc">
+            <p class="compact-h">Prismocitrate 18 rate</p>
+            <div class="grid-3 simple">
+              <label class="field">
+                <span class="field-label">Target citrate dose <span class="tag">default 3</span></span>
+                <div class="field-control">
+                  <input id="c-cit-target" type="text" inputmode="decimal" autocomplete="off" value="3" aria-label="Target citrate dose, mmol per litre of blood, default 3">
+                  <span class="unit-pill">mmol/L</span>
+                </div>
+              </label>
+            </div>
+            <p class="note">mmol per litre of blood. Solution citrate 18 mmol/L (Prismocitrate 18/0 label). Rate = blood flow (mL/min) × 60 × target ÷ 18. Pre-dilution only.</p>
+            <div class="metric-grid two" style="margin-top:10px">
+              <div class="metric"><div class="mv" id="c-cit-rate">—</div><div class="ml">Prismocitrate 18 (pre-filter)</div></div>
+              <div class="metric"><div class="mv" id="c-cit-qb">—</div><div class="ml">Blood flow</div></div>
+            </div>
+            <p class="note" id="c-cit-note">Enter blood flow on the previous step to calculate the rate.</p>
+
+            <p class="compact-h">Calcium replacement start (optional)</p>
+            <p class="note">The trial does not publish a starting calcium rate. Enter both values to estimate a start rate from effluent calcium loss. Leave blank to keep “Calcium per unit protocol.” No default bag strength or effluent calcium is assumed.</p>
+            <div class="grid-3 simple">
+              <label class="field">
+                <span class="field-label">Estimated effluent Ca</span>
+                <div class="field-control">
+                  <input id="c-ca-eff" type="text" inputmode="decimal" autocomplete="off" placeholder="—" aria-label="Estimated effluent calcium, mmol/L">
+                  <span class="unit-pill">mmol/L</span>
+                </div>
+              </label>
+              <label class="field">
+                <span class="field-label">Calcium solution</span>
+                <div class="field-control">
+                  <input id="c-ca-sol" type="text" inputmode="decimal" autocomplete="off" placeholder="—" aria-label="Calcium replacement solution concentration, mmol/L">
+                  <span class="unit-pill">mmol/L</span>
+                </div>
+              </label>
+            </div>
+            <p class="note">Published typical effluent calcium is 1.6–2 mmol/L when citrate accumulation is negligible (Yessayan et al., Kidney360 2025). That range is not pre-filled.</p>
+            <div class="metric-grid two" style="margin-top:10px">
+              <div class="metric"><div class="mv" id="c-ca-rate">—</div><div class="ml">Calcium start rate</div></div>
+            </div>
+            <p class="note" id="c-ca-note">Enter estimated effluent calcium and the calcium-solution concentration, and have an effluent rate, to see mL/h.</p>
+          </div>
+
           <div class="compact-targets" id="citrate-compact">
             <div class="compact-row"><span class="ck">Post-filter iCa</span><span class="cv">0.25–0.35 mmol/L</span></div>
             <div class="compact-row"><span class="ck">Systemic iCa</span><span class="cv">1.0–1.3 mmol/L</span></div>
@@ -255,7 +298,7 @@
             </div>
 
             <h4>Solution</h4>
-            <p class="protocol-p">Prismocitrate 18, pre-dilution only. Citrate dose indexed to blood flow, target 3 mmol/L of blood. This app does not calculate citrate or calcium doses.</p>
+            <p class="protocol-p">Prismocitrate 18, pre-dilution only. Citrate dose indexed to blood flow, target 3 mmol/L of blood. When blood flow is entered, the pre-filter rate is calculated from that relationship and the labelled 18 mmol/L citrate concentration. A numeric calcium start rate is shown only if estimated effluent calcium and the calcium-solution concentration are entered; otherwise the prescription lists Calcium per unit protocol.</p>
 
             <h4>Do not use if (trial exclusions)</h4>
             <ul>
@@ -329,6 +372,9 @@
             <li>Morabito S, Pistolesi V, Tritapepe L, Fiaccadori E. Regional citrate anticoagulation for RRTs in critically ill patients with AKI. <em>Clin J Am Soc Nephrol.</em> 2014;9:2173–2188. doi:10.2215/CJN.01280214</li>
             <li>Safety Evaluation of Prismocitrate 18 in Patients Receiving CRRT. ClinicalTrials.gov identifier: NCT05399537. <a href="https://clinicaltrials.gov/study/NCT05399537" target="_blank" rel="noopener">clinicaltrials.gov/study/NCT05399537</a> (record retrieved 14 Nov 2026; last update posted 5 Oct 2026). A Bon Secours Mercy Health hospital in Springfield, Ohio, was listed as a site (the record now marks that site terminated).</li>
             <li>Schultheiß C, Saugel B, Phillip V, et al. Continuous venovenous hemodialysis with regional citrate anticoagulation in patients with liver failure: a prospective observational study. <em>Crit Care.</em> 2012;16:R162. doi:10.1186/cc11485</li>
+            <li>Prismocitrate 18/0 Instruction for use. Bieffe Medital S.p.A. (Baxter), D13000165 Ver. 4.0. Specification: sodium chloride 5.03 g/l, sodium citrate 5.29 g/l; citrate 18 mmol/l, sodium 140 mmol/l, chloride 86 mmol/l; calcium- and magnesium-free. “The solution must be used in pre-dilution only with a dialysis machine intended for continuous renal replacement therapy.” <a href="https://corpturkey-site.baxterdigital.net/sites/g/files/ebysai1366/files/2019-03/prismocitrate%2018-0.pdf" target="_blank" rel="noopener">IFU PDF</a> (read 14 Nov 2026).</li>
+            <li>Regiocit Solution for haemofiltration. Summary of Product Characteristics, Health Products Regulatory Authority, 4 November 2026, PA25288/008/001. Same ionic composition (citrate 18 mmol/l, sodium 140 mmol/l, chloride 86 mmol/l). Section 4.2: the rate “depends on the targeted citrate dose and the prescribed blood flow rate (BFR)”; pre-filter infusion “adapted relative to the blood flow rate to achieve target blood citrate concentration of 3 to 4 mmol/l of blood”; “pre-dilution mode only,” with the solution flow rate “automatically adapted based on an operator set target dose (mmol citrate/l blood).” “A separate infusion of calcium is always required.” No starting calcium rate or bag strength is given. <a href="https://assets.hpra.ie/products/Human/21433/Licence_PA25288-008-001_04112026153259.pdf" target="_blank" rel="noopener">HPRA SmPC PDF</a> (read 14 Nov 2026).</li>
+            <li>Yessayan L, Tolwani A, Heung M, Szamosfalvi B. Troubleshooting ionized hypocalcemia in patients on continuous KRT with regional citrate anticoagulation. <em>Kidney360.</em> 2025;7(5):1160–1167. doi:10.34067/KID.0000001053, PMID 41201866, PMC13229442. Starting calcium rate (mL/h) = [tCa]<sub>Eff</sub> × Q<sub>Eff</sub> / [Ca<sup>2+</sup>]<sub>sol</sub>. Typical effluent calcium loss 1.6–2 mmol per litre when citrate accumulation is negligible (not used as a default). <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC13229442/" target="_blank" rel="noopener">PMC13229442</a> (read 14 Nov 2026).</li>
           </ol>
           </details>
         </article>

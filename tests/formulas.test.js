@@ -363,7 +363,63 @@ eq(F.TARGETS.DEFAULT_PRESCRIBE, 25, "default prescribed target 25");
 eq(F.TARGETS.FF_CAUTION, 0.2, "FF caution 20% (practice-based)");
 eq(F.TARGETS.FF_WARN, 0.25, "FF warning 25% (Murugan/Mehta 2016)");
 isTrue(F.pdWeeklyKtv === undefined && F.watsonTbw === undefined, "no PD functions in the standalone app");
-isTrue(F.citrateInfusionRate === undefined, "no citrate dose calculator in the standalone app");
+eq(F.TARGETS.CITRATE_DOSE_DEFAULT, 3, "default citrate target 3 mmol/L blood (NCT05399537)");
+eq(F.TARGETS.PRISMOCITRATE18_MMOL_PER_L, 18, "Prismocitrate 18 concentration 18 mmol/L (IFU/SmPC)");
+eq(F.TARGETS.EFFLUENT_TCA_RANGE_MIN, 1.6, "published effluent Ca range min (display only)");
+eq(F.TARGETS.EFFLUENT_TCA_RANGE_MAX, 2, "published effluent Ca range max (display only)");
+
+/* ── Prismocitrate 18 rate and calcium start ─────────────────────────────── */
+section("Prismocitrate 18 rate (Qb × 60 × target / 18)");
+eq(F.prismocitrate18Rate({ qbMlMin: 150 }).rateMlH, 1500, "Qb 150, default target 3 → 1,500 mL/h");
+eq(F.prismocitrate18Rate({ qbMlMin: 200 }).rateMlH, 2000, "Qb 200 → 2,000 mL/h");
+eq(F.prismocitrate18Rate({ qbMlMin: 130, targetMmolPerLBlood: 3 }).rateMlH, 1300, "Qb 130 → 1,300 mL/h");
+eq(F.prismocitrate18Rate({ qbMlMin: 150, targetMmolPerLBlood: 4 }).rateMlH, 2000, "editable target 4 mmol/L");
+eq(F.prismocitrate18Rate({ qbMlMin: 150 }).citrateMmolPerL, 18, "uses labelled 18 mmol/L");
+eq(F.prismocitrate18Rate({ qbMlMin: 150 }).targetMmolPerLBlood, 3, "default target is 3");
+throws(() => F.prismocitrate18Rate({ qbMlMin: 0 }), "Qb 0 throws");
+throws(() => F.prismocitrate18Rate({ qbMlMin: 150, targetMmolPerLBlood: 0 }), "target 0 throws");
+
+section("Apply Prismocitrate 18 as pre-filter replacement");
+const postRec = F.applyPrismocitratePreFilter({
+  citrateRateMlH: 1500,
+  qpostMlH: 2000,
+  qdMlH: 0,
+  qnetMlH: 0,
+  doseBasedQpreMlH: 0,
+});
+eq(postRec.qpreMlH, 1500, "CVVH post: pre-filter becomes the citrate rate");
+eq(postRec.qpostMlH, 2000, "CVVH post: post-filter is not auto-reduced");
+eq(postRec.qeffMlH, 3500, "CVVH post: effluent is citrate + post (exceeds a 2,000 target)");
+isTrue(postRec.preFilterDiffersFromDoseSplit, "flags that dose-based Qpre was 0");
+
+const preRec = F.applyPrismocitratePreFilter({
+  citrateRateMlH: 1500,
+  qpostMlH: 0,
+  qdMlH: 0,
+  qnetMlH: 0,
+  doseBasedQpreMlH: 2000,
+});
+eq(preRec.qpreMlH, 1500, "CVVH pre: citrate rate replaces the dose-based pre-filter rate");
+eq(preRec.qeffMlH, 1500, "CVVH pre: effluent follows the citrate rate, not the 2,000 target");
+
+const scufRec = F.applyPrismocitratePreFilter({
+  citrateRateMlH: 1500,
+  qpostMlH: 0,
+  qdMlH: 0,
+  qnetMlH: 100,
+  doseBasedQpreMlH: 0,
+});
+eq(scufRec.qeffMlH, 1600, "SCUF + citrate: effluent is citrate rate + net UF");
+
+section("Calcium replacement start (Yessayan 2025); no invented defaults");
+const ca = F.calciumReplacementStartRate({ tCaEffMmolPerL: 2, qEffMlH: 2000, caSolMmolPerL: 136 });
+eq(Math.round(ca.rateMlH * 1000) / 1000, Math.round((2 * 2000 / 136) * 1000) / 1000, "2 mmol/L × 2000 / 136 mmol/L");
+isTrue(Math.abs(ca.rateMlH - 29.412) < 0.01, "near the paper’s worked ~29 mL/h example");
+const caLow = F.calciumReplacementStartRate({ tCaEffMmolPerL: 1.6, qEffMlH: 2000, caSolMmolPerL: 136 });
+isTrue(Math.abs(caLow.rateMlH - (1.6 * 2000 / 136)) < 1e-9, "uses the entered 1.6, not a midpoint default");
+throws(() => F.calciumReplacementStartRate({ qEffMlH: 2000, caSolMmolPerL: 136 }), "missing effluent Ca throws — no default");
+throws(() => F.calciumReplacementStartRate({ tCaEffMmolPerL: 2, qEffMlH: 2000 }), "missing bag strength throws — no default");
+throws(() => F.calciumReplacementStartRate({ tCaEffMmolPerL: 0, qEffMlH: 2000, caSolMmolPerL: 136 }), "effluent Ca 0 throws");
 
 /* ── summary ────────────────────────────────────────────────────────────── */
 console.log("\n────────────────────────────────────────");

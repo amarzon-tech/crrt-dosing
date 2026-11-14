@@ -5,6 +5,8 @@
  * in his own words. The citrate calcium-ratio check and the citrate
  * precautions are shown only as draft content while DRAFT is true
  * (CITRATE_DRAFT_LABEL) and are covered by the same sign-off.
+ * The Prismocitrate 18 rate and optional calcium start-rate calculation
+ * are also draft content under that flag.
  */
 (function (global) {
   "use strict";
