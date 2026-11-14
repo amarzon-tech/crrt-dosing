@@ -40,6 +40,7 @@ isTrue(/id="cit-draft-tag"/.test(html) && /CITRATE_DRAFT_LABEL/.test(app), "citr
 isTrue(!fs.existsSync(path.join(root, "CNAME")), "no custom domain");
 const review = read("CONTENT_REVIEW.md");
 isTrue(/Dr D confirmed defaults Nov 14 2026/.test(review), "CONTENT_REVIEW records confirmed defaults");
+isTrue(/Dr D chose the 10% default on Nov 14 2026/.test(review), "CONTENT_REVIEW records the 10% downtime default");
 isTrue(!(/^- \[x\]/m).test(review) && !(/^- \[X\]/m).test(review), "no sign-off boxes ticked");
 isTrue(/DRAFT=true/.test(review), "review file still requires DRAFT=true");
 
@@ -74,6 +75,8 @@ textInputs.forEach((i) => {
 isTrue(textInputs.length === 11, "11 number fields total (step 2: qb/weight/hct/qnet; step 3 heparin 3; step 4 target/downtime + calcium 2); got " + textInputs.length);
 isTrue(!/>\s*Calculate\s*</i.test(html), "no Calculate button");
 isTrue(/id="c-target"[^>]*value="25"/.test(html), "target dose prefilled 25");
+isTrue(/id="c-down"[^>]*value="10"/.test(html), "downtime prefilled 10");
+isTrue(/>default 10%</.test(html), "downtime is labeled default 10%");
 isTrue(/id="c-qnet"[^>]*value="0"/.test(html), "net UF prefilled 0");
 isTrue(/id="c-hep-bolus"[^>]*value="30"/.test(html), "heparin bolus prefilled 30");
 isTrue(/id="c-hep-rate"[^>]*value="7"/.test(html), "heparin infusion prefilled 7");
