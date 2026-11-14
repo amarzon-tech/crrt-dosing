@@ -110,18 +110,20 @@ isTrue(/isScuf\(\)/.test(app) && /fluid removal rate greater than 0/.test(app), 
 section("Fixed 50/50 split, no sliders");
 isTrue(!/<input[^>]*type="range"/.test(html), "no split sliders");
 isTrue(!/id="c-d-frac"/.test(html) && !/id="c-pre-frac"/.test(html), "dialysate and predilution sliders are removed");
-isTrue(/id="c-split-note"/.test(html) && /Split fixed at 50\/50/.test(html), "one-line Split fixed at 50/50 note");
+isTrue(/id="c-split-note"/.test(html) && /Dialysate \/ replacement split fixed at 50\/50/.test(html), "one-line dialysate/replacement 50/50 note");
 isTrue(/syncModalityUi/.test(app) && /cvvhdf/.test(app) && /c-split-note/.test(app), "50/50 note is shown for CVVHDF");
-isTrue(/const preFrac = 0\.5/.test(app) && /const dFrac = 0\.5/.test(app), "app locks CVVHDF splits at 0.5");
-isTrue(/Dr D chose this on Nov 14 2026/.test(review), "CONTENT_REVIEW records that Dr D chose the fixed 50/50 split");
+isTrue(/const dFrac = 0\.5/.test(app), "app locks CVVHDF dialysate/replacement at 0.5");
+isTrue(/function replacementPreFraction/.test(app) && /replacementMode === "post"/.test(app), "replacement Pre\/Post\/Mixed sets preFraction");
+isTrue(/dialysate\/replacement split stays locked at 50\/50/.test(review) && /Nov 14 2026/.test(review), "CONTENT_REVIEW records the locked 50/50 dialysate split");
 
 
 section("Simplified modalities and SCUF");
 isTrue(/data-mod="cvvh"/.test(html) && /data-mod="cvvhd"/.test(html) && /data-mod="cvvhdf"/.test(html) && /data-mod="scuf"/.test(html), "four modality chips: CVVH, CVVHD, CVVHDF, SCUF");
-isTrue(!/data-mod="cvvh-mixed"/.test(html) && !/CVVH mixed/.test(html + app), "CVVH mixed is removed");
+isTrue(!/data-mod="cvvh-mixed"/.test(html), "Mixed is a replacement choice, not a separate modality chip");
 isTrue(!/data-mod="cvvh-pre"/.test(html) && !/data-mod="cvvh-post"/.test(html), "separate CVVH pre/post chips are gone");
-isTrue(/id="c-cvvh-repl"/.test(html) && /data-repl="pre">Pre</.test(html) && /data-repl="post">Post</.test(html), "CVVH has a Replacement Pre / Post toggle");
-isTrue(/data-repl="post"[^>]*aria-checked="true"/.test(html) || /class="chip is-on"[^>]*data-repl="post"/.test(html), "CVVH replacement defaults to Post");
+isTrue(/id="c-cvvh-repl"/.test(html) && /data-repl="pre">Pre</.test(html) && /data-repl="post">Post</.test(html) && /data-repl="mixed">Mixed</.test(html), "Replacement: Pre / Post / Mixed");
+isTrue(/data-repl="post"[^>]*aria-checked="true"/.test(html) || /class="chip is-on"[^>]*data-repl="post"/.test(html), "replacement defaults to Post");
+isTrue(/c-cvvh-repl-wrap"[\s\S]*toggle\("hidden", !\(cvvh \|\| hdf\)\)/.test(app) || /hidden", !\(cvvh \|\| hdf\)/.test(app), "replacement choice is shown for CVVH and CVVHDF");
 isTrue(/id="c-scuf-mod-note"/.test(html) && /no dialysate, replacement fluid, or dose target/.test(html), "SCUF step-1 note");
 isTrue(/id="c-qnet-scuf-msg"/.test(html) && /fluid removal rate greater than 0/.test(html), "SCUF net UF prompt");
 isTrue(/Weight is optional for SCUF/.test(app), "weight is optional for SCUF");
@@ -129,6 +131,7 @@ isTrue(/modality: "scuf"/.test(app) && /optional-card/.test(app), "dose target c
 isTrue(/dc-pres-row/.test(app) && /dc-del-row/.test(app), "prescribed and delivered dose rows hide for SCUF");
 isTrue(!/SCUF/.test(app + html) ? false : true, "SCUF is named in the app");
 isTrue(/Dr D.s Nov 14 2026 request/.test(review) || /asked why CVVH had pre, post and mixed/.test(review), "CONTENT_REVIEW notes Dr D’s Nov 14 2026 request");
+isTrue(/Pre \/ Post \/ Mixed/.test(review) && /changes the CVVHDF default/.test(review), "CONTENT_REVIEW notes the Pre/Post/Mixed request and the CVVHDF default change");
 
 section("Heparin bolus Yes / No");
 isTrue(/id="c-hep-bolus-lbl">Bolus</.test(html), "plain Bolus label");

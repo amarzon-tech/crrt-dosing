@@ -88,15 +88,25 @@
   }
 
   let modality = "cvvh";
-  let cvvhReplacement = "post";
+  let replacementMode = "post";
 
   function isScuf() {
     return modality === "scuf";
   }
 
   function rateModality() {
-    if (modality === "cvvh") return cvvhReplacement === "pre" ? "cvvh-pre" : "cvvh-post";
+    if (modality === "cvvh") {
+      if (replacementMode === "pre") return "cvvh-pre";
+      if (replacementMode === "mixed") return "cvvh-mixed";
+      return "cvvh-post";
+    }
     return modality;
+  }
+
+  function replacementPreFraction() {
+    if (replacementMode === "pre") return 1;
+    if (replacementMode === "post") return 0;
+    return 0.5;
   }
 
   function syncScufUfPrompt() {
@@ -112,7 +122,7 @@
     const cvvh = modality === "cvvh";
     const hdf = modality === "cvvhdf";
     const scuf = isScuf();
-    if ($("c-cvvh-repl-wrap")) $("c-cvvh-repl-wrap").classList.toggle("hidden", !cvvh);
+    if ($("c-cvvh-repl-wrap")) $("c-cvvh-repl-wrap").classList.toggle("hidden", !(cvvh || hdf));
     if ($("c-split-note")) $("c-split-note").classList.toggle("hidden", !hdf);
     if ($("c-kdigo-mod-note")) $("c-kdigo-mod-note").classList.toggle("hidden", scuf);
     if ($("c-scuf-mod-note")) $("c-scuf-mod-note").classList.toggle("hidden", !scuf);
@@ -140,7 +150,7 @@
     recalc();
   });
   bindChips("c-cvvh-repl", (btn) => {
-    cvvhReplacement = btn.dataset.repl;
+    replacementMode = btn.dataset.repl;
     recalc();
   });
 
@@ -201,6 +211,7 @@
   const ROWS_BY_MOD = {
     "cvvh-pre": ["row-qpre"],
     "cvvh-post": ["row-qpost"],
+    "cvvh-mixed": ["row-qpre", "row-qpost"],
     cvvhd: ["row-qd"],
     cvvhdf: ["row-qd", "row-qpre", "row-qpost"],
     scuf: [],
@@ -222,8 +233,9 @@
     const qb = num($("c-qb"));
     const hct = num($("c-hct"));
     const down = num($("c-down"));
-    // Splits are locked at 50/50 (Dr D, 14 Nov 2026). No slider.
-    const preFrac = 0.5;
+    // CVVHDF dialysate/replacement split stays locked at 50/50.
+    // Replacement pre/post follows Pre / Post / Mixed (Mixed = 0.5).
+    const preFrac = replacementPreFraction();
     const dFrac = 0.5;
 
     ["row-qpre", "row-qpost", "row-qd"].forEach((r) => {
@@ -525,13 +537,13 @@
         <h4>How rates are split</h4>
         <p class="eq">Target effluent = target dose × weight<br>
         Remaining = target effluent − net UF<br>
-        CVVH: remaining → post-filter or pre-filter replacement (Replacement: Pre / Post toggle; default Post)<br>
-        CVVHD: remaining → dialysate (UF is the only convection)<br>
-        CVVHDF: remaining split 50% dialysate and 50% replacement, then replacement 50% pre-filter and 50% post-filter (fixed)<br>
-        SCUF: no dialysate, no replacement, and no dose target. The prescription is blood flow, fluid removal (net UF), and anticoagulation.</p>
+        CVVH: remaining → pre-filter, post-filter, or 50/50 mixed replacement (Replacement: Pre / Post / Mixed; default Post)<br>
+        CVVHD: remaining → dialysate (UF is the only convection). No replacement choice.<br>
+        CVVHDF: remaining split 50% dialysate and 50% replacement (fixed). That replacement follows the same Pre / Post / Mixed choice (default Post; Mixed = 50/50 pre/post).<br>
+        SCUF: no dialysate, no replacement, and no dose target. The prescription is blood flow, fluid removal (net UF), and anticoagulation. No replacement choice.</p>
         <h4>Caveats</h4>
         <ul>
-          <li>The CVVHDF 50/50 splits are fixed (Dr D, 14 Nov 2026). They are <strong>not</strong> a guideline target.</li>
+          <li>The CVVHDF dialysate / replacement split is fixed at 50/50 (Dr D, 14 Nov 2026). It is <strong>not</strong> a guideline target. The pre/post share of the replacement half is a separate choice (default Post).</li>
           <li>If net UF already exceeds the target effluent, rates are not auto-filled and a warning is implied by the dose numbers.</li>
           <li>SCUF has no suggested clearance rates and no SCUF-specific numeric limits. Filtration fraction is shown if blood flow and hematocrit are entered (FF = UF / plasma flow).</li>
         </ul>`,

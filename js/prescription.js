@@ -45,6 +45,8 @@
         return "CVVH (pre-filter replacement)";
       case "cvvh-post":
         return "CVVH (post-filter replacement)";
+      case "cvvh-mixed":
+        return "CVVH (mixed pre- and post-filter replacement)";
       case "cvvhd":
         return "CVVHD";
       case "cvvhdf":

@@ -96,6 +96,33 @@ const hdf = Rx.formatCrrtPrescription({
   qnetMlH: 100,
 });
 includes(hdf.text, "Modality: CVVHDF", "HDF modality");
+
+const hdfPost = Rx.formatCrrtPrescription({
+  date: DATE,
+  modality: "cvvhdf",
+  qbMlMin: 200,
+  qdMlH: 1000,
+  qpreMlH: 0,
+  qpostMlH: 1000,
+  qnetMlH: 0,
+  anticoagulation: "citrate",
+});
+includes(hdfPost.text, "Dialysate: 1,000 mL/h", "CVVHDF Post dialysate");
+includes(hdfPost.text, "Post-filter replacement: 1,000 mL/h", "CVVHDF Post replacement");
+excludes(hdfPost.text, "Pre-filter replacement", "CVVHDF Post omits unused pre line");
+
+const hdfMixed = Rx.formatCrrtPrescription({
+  date: DATE,
+  modality: "cvvhdf",
+  qbMlMin: 200,
+  qdMlH: 1000,
+  qpreMlH: 500,
+  qpostMlH: 500,
+  qnetMlH: 0,
+  anticoagulation: "citrate",
+});
+includes(hdfMixed.text, "Pre-filter replacement: 500 mL/h", "CVVHDF Mixed shows pre and post rates");
+includes(hdfMixed.text, "Post-filter replacement: 500 mL/h", "CVVHDF Mixed post rate");
 includes(hdf.text, "Blood flow: 150 mL/min", "HDF blood flow");
 includes(hdf.text, "Dialysate: 1,000 mL/h", "HDF dialysate");
 includes(hdf.text, "Pre-filter replacement: 500 mL/h", "HDF pre");
@@ -193,6 +220,7 @@ excludes(crrt.text, "PD", "CRRT sheet has no PD text");
 section("Modality labels");
 eq(Rx.modalityOrderLabel("cvvh-pre"), "CVVH (pre-filter replacement)", "pre");
 eq(Rx.modalityOrderLabel("scuf"), "SCUF", "SCUF");
+eq(Rx.modalityOrderLabel("cvvh-mixed"), "CVVH (mixed pre- and post-filter replacement)", "mixed");
 eq(Rx.modalityOrderLabel("cvvhd"), "CVVHD", "CVVHD");
 eq(Rx.modalityOrderLabel("cvvhdf"), "CVVHDF", "CVVHDF");
 eq(Rx.modalityOrderLabel("cvvh-post"), "CVVH (post-filter replacement)", "post");

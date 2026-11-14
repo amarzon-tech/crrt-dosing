@@ -161,6 +161,16 @@ section("Suggested prescription from target dose (KDIGO default 25 mL/kg/h)");
     weightKg: 80,
     targetMlKgH: 25,
     qnetMlH: 100,
+    modality: "cvvh-mixed",
+  });
+  approx(s.qpreMlH, 950, 1e-12, "CVVH mixed default 50% pre");
+  approx(s.qpostMlH, 950, 1e-12, "CVVH mixed default 50% post");
+}
+{
+  const s = F.suggestCrrtPrescription({
+    weightKg: 80,
+    targetMlKgH: 25,
+    qnetMlH: 100,
     modality: "cvvhd",
   });
   approx(s.qdMlH, 1900, 1e-12, "CVVHD all remaining is dialysate");
@@ -188,6 +198,45 @@ section("Suggested prescription from target dose (KDIGO default 25 mL/kg/h)");
   approx(s.qdMlH, 950, 1e-12, "CVVHDF default 50% dialysate");
   approx(s.qpreMlH, 475, 1e-12, "CVVHDF default 50% of replacement is pre");
   approx(s.qpostMlH, 475, 1e-12, "CVVHDF default 50% of replacement is post");
+}
+{
+  const s = F.suggestCrrtPrescription({
+    weightKg: 80,
+    targetMlKgH: 25,
+    qnetMlH: 0,
+    modality: "cvvhdf",
+    dialysateFraction: 0.5,
+    preFraction: 0,
+  });
+  approx(s.qdMlH, 1000, 1e-12, "CVVHDF 50% dialysate");
+  approx(s.qpostMlH, 1000, 1e-12, "CVVHDF Post: all replacement post");
+  approx(s.qpreMlH, 0, 1e-12, "CVVHDF Post: no pre");
+}
+{
+  const s = F.suggestCrrtPrescription({
+    weightKg: 80,
+    targetMlKgH: 25,
+    qnetMlH: 0,
+    modality: "cvvhdf",
+    dialysateFraction: 0.5,
+    preFraction: 1,
+  });
+  approx(s.qdMlH, 1000, 1e-12, "CVVHDF 50% dialysate with Pre");
+  approx(s.qpreMlH, 1000, 1e-12, "CVVHDF Pre: all replacement pre");
+  approx(s.qpostMlH, 0, 1e-12, "CVVHDF Pre: no post");
+}
+{
+  const s = F.suggestCrrtPrescription({
+    weightKg: 80,
+    targetMlKgH: 25,
+    qnetMlH: 0,
+    modality: "cvvhdf",
+    dialysateFraction: 0.5,
+    preFraction: 0.5,
+  });
+  approx(s.qdMlH, 1000, 1e-12, "CVVHDF Mixed: 50% dialysate");
+  approx(s.qpreMlH, 500, 1e-12, "CVVHDF Mixed: 50% of replacement is pre");
+  approx(s.qpostMlH, 500, 1e-12, "CVVHDF Mixed: 50% of replacement is post");
 }
 {
   const s = F.suggestCrrtPrescription({

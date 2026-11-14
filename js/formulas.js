@@ -233,12 +233,12 @@
    * Remaining effluent (Qeff − Qnet) is split by modality:
    *   CVVH post:  all remaining → Qpost
    *   CVVH pre:   all remaining → Qpre
+   *   CVVH mixed: remaining × preFraction → Qpre, rest → Qpost (app uses 0.5)
    *   CVVHD:      all remaining → Qd
-   *   CVVHDF:     remaining × dialysateFraction → Qd; the rest is replacement,
-   *               then split by preFraction.
-   * The app locks CVVHDF preFraction and dialysateFraction at 0.5 (50/50).
-   * These parameters remain so the equation can be tested at other splits.
-   * They are NOT guideline targets.
+   *   CVVHDF:     remaining × dialysateFraction → Qd (app locks this at 0.5);
+   *               the rest is replacement, then split by preFraction
+   *               (1 = all pre, 0 = all post, 0.5 = mixed).
+   * preFraction / dialysateFraction are not guideline targets.
    * SCUF is not calculated here: it has no dose target, dialysate, or replacement.
    */
   function suggestCrrtPrescription(opts) {
@@ -266,6 +266,10 @@
           break;
         case "cvvh-post":
           qpost = remaining;
+          break;
+        case "cvvh-mixed":
+          qpre = remaining * preFrac;
+          qpost = remaining * (1 - preFrac);
           break;
         case "cvvhd":
           qd = remaining;
