@@ -15,7 +15,7 @@ A static, offline progressive web app on one screen:
 - **Dose:** weight, target (default 25 mL/kg/h), net UF (default 0), modality → suggested replacement / dialysate rates and prescribed dose.
 - **Filter check (optional):** blood flow, hematocrit, downtime → filtration fraction, minimum Qb for FF 25%, predilution-corrected and delivered dose.
 - **Heparin:** bolus 30 IU/kg and 7 IU/kg/h defaults (Joannidis 2007, as described in KDIGO 2012 §5.3), optional bag strength → units, units/h, mL/h.
-- **Citrate anticoagulation precautions:** contraindications, monitoring, metabolic complications, and what to do if accumulation is suspected, cited to KDIGO 2012 §5.3 and published reviews; plus a total/ionized calcium ratio check. No citrate dose calculator.
+- **Citrate anticoagulation precautions:** a reference-protocol block from the Prismocitrate 18 trial (NCT05399537), plus supporting contraindications, monitoring, metabolic complications, and what to do if accumulation is suspected, cited to KDIGO 2012 §5.3 and published reviews; plus a total/ionized calcium ratio check (main flag: ratio >2.5). No citrate dose calculator. Trial values are a trial protocol, not a Bon Secours Richmond policy.
 - **Order sheet** (Copy / Print) built from those values, with blank write-ins for anything not calculated.
 
 Every statement, number and citation is listed for sign-off in [CONTENT_REVIEW.md](CONTENT_REVIEW.md).

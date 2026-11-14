@@ -3,7 +3,8 @@
  * Run: node tests/formulas.test.js
  * Every numeric expectation is either a direct rearrangement of a cited
  * equation or a published value (KDIGO ranges, Joannidis heparin regimen,
- * citrate calcium-ratio cut-offs from Schneider 2017 / Oudemans-van Straaten 2012).
+ * citrate calcium-ratio cut-offs from the Prismocitrate 18 trial (NCT05399537)
+ * and Oudemans-van Straaten 2012).
  */
 "use strict";
 
@@ -211,19 +212,21 @@ section("Delivered dose with downtime (KDIGO 5.8.1 time-weighted approximation)"
   eq(F.kdigoDoseStatus(25, 30).deliveredStatus, "in-range", "25 inclusive upper bound");
 }
 
-section("Citrate calcium ratio (Schneider Crit Care 2017; Oudemans-van Straaten Crit Care 2012)");
+section("Citrate calcium ratio (Prismocitrate 18 NCT05399537 >2.5; Oudemans-van Straaten 2012 >2.25)");
 {
-  eq(F.TARGETS.CITRATE_RATIO_CUTOFF, 2.5, "Schneider 2017 usual cut-off 2.5");
+  eq(F.TARGETS.CITRATE_RATIO_CUTOFF, 2.5, "trial accumulation flag is 2.5 (compared as >2.5)");
   eq(F.TARGETS.CITRATE_RATIO_CONSIDER, 2.25, "Oudemans-van Straaten 2012 >2.25");
-  // 10 mg/dL total = 2.5 mmol/L; iCa 1.0 mmol/L -> ratio 2.5 (cut-off)
+  // 10 mg/dL total = 2.5 mmol/L; iCa 1.0 mmol/L -> ratio 2.5 (equal to, not above, the trial flag)
   const r = F.citrateCalciumRatio(10, "mg/dL", 1.0, "mmol/L");
   approx(r.ratio, 2.5, 1e-12, "total 10 mg/dL / iCa 1.0 mmol = 2.5");
   approx(r.totalMmol, 2.5, 1e-12, "10 mg/dL = 2.5 mmol/L");
-  eq(r.status, "accumulation", "2.5 meets the 2.5 cut-off (>=)");
+  eq(r.status, "consider", "exactly 2.5 is not >2.5, so it stays in the consider band");
+  const justOver = F.citrateCalciumRatio(2.501, "mmol/L", 1.0, "mmol/L");
+  eq(justOver.status, "accumulation", "2.501 rounds to 2.501 and is >2.5");
   const hi = F.citrateCalciumRatio(3.0, "mmol/L", 1.0, "mmol/L");
   eq(hi.status, "accumulation", "3.0 is above 2.5");
   const cons = F.citrateCalciumRatio(2.45, "mmol/L", 1.0, "mmol/L");
-  eq(cons.status, "consider", "2.45 is >2.25 and <2.5");
+  eq(cons.status, "consider", "2.45 is >2.25 and not >2.5");
   const justAbove = F.citrateCalciumRatio(2.26, "mmol/L", 1.0, "mmol/L");
   eq(justAbove.status, "consider", "2.26 is >2.25");
   // Exactly 2.25 is not 'above 2.25' (source wording is >2.25)
@@ -233,6 +236,10 @@ section("Citrate calcium ratio (Schneider Crit Care 2017; Oudemans-van Straaten 
   // Float artefact guard: 2.2500000000000004 must not flip to 'consider'
   const flo = F.citrateCalciumRatio(2.25 + 4e-16, "mmol/L", 1.0, "mmol/L");
   eq(flo.status, "below", "float artefact at 2.25 stays below");
+  // 2.5004 rounds to 2.500 and must not flip to accumulation
+  const flo25 = F.citrateCalciumRatio(2.5 + 4e-4, "mmol/L", 1.0, "mmol/L");
+  approx(flo25.ratio, 2.5004, 1e-12, "2.5004 before rounding");
+  eq(flo25.status, "consider", "2.5004 rounds to 2.5 and is not >2.5");
   const low = F.citrateCalciumRatio(2.3, "mmol/L", 1.15, "mmol/L");
   approx(low.ratio, 2.0, 1e-12, "2.3 / 1.15 = 2.0");
   eq(low.status, "below", "2.0 is below both flags");

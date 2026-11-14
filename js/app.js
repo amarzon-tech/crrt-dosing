@@ -329,7 +329,7 @@
           stText = "Total is lower than ionized — check units";
           ratioState = "warn";
         } else if (r.status === "accumulation") {
-          stText = "2.5 or more — suggests accumulation; follow protocol";
+          stText = "Above 2.5 — accumulation by the trial definition; follow protocol";
           ratioState = "bad";
         } else if (r.status === "consider") {
           stText = "Above 2.25 — consider accumulation";
@@ -473,7 +473,18 @@
     citrate: {
       title: "Citrate precautions — sources",
       html: `
-        <p><strong>Educational guidance, not a protocol.</strong> Follow your institution’s regional citrate anticoagulation (RCA) protocol for solution, dose, calcium replacement, targets and monitoring times. Draft — awaiting Dr D sign-off.</p>
+        <p><strong>Follow your institution’s protocol.</strong> The reference-protocol box uses values from the Prismocitrate 18 clinical-trial protocol (NCT05399537). Those values are a trial protocol, not a Bon Secours Richmond policy. Draft — awaiting Dr D sign-off. This app does not calculate citrate or calcium doses.</p>
+        <h4>Reference protocol: Prismocitrate 18 (NCT05399537)</h4>
+        <p>Safety Evaluation of Prismocitrate 18 in Patients Receiving CRRT. ClinicalTrials.gov identifier: NCT05399537. <a href="https://clinicaltrials.gov/study/NCT05399537" target="_blank" rel="noopener">clinicaltrials.gov/study/NCT05399537</a>. Record retrieved 14 Nov 2026; last update posted 5 Oct 2026. Sponsor: Vantive Health LLC. Phase 3, recruiting, no results posted. A Bon Secours Mercy Health hospital in Springfield, Ohio, was listed as a site (the record now marks that site terminated). This is not a Bon Secours Richmond policy.</p>
+        <ul>
+          <li><strong>Solution:</strong> “Prismocitrate 18 solution (investigational drug) will be used in pre-dilution mode only; the rate of administration depends on the targeted citrate dose and the prescribed flow rate. The pre-filter infusion rate of Prismocitrate 18 solution will be indexed to the blood flow rate (BFR) to achieve a target blood citrate concentration of 3 mmol/L of blood.”</li>
+          <li><strong>Post-filter iCa:</strong> “The flow rate for the anticoagulation of the extracorporeal circuit will be titrated to achieve a post-filter concentration of iCa of 0.25 to 0.35 mmol/L.”</li>
+          <li><strong>Systemic iCa range (eligibility):</strong> “Patients with a systemic ionized calcium concentration outside the normal physiologic range (1.0 - 1.3 mmol/L), or outside of the laboratory reference range (Note: It is acceptable to provide calcium supplementation or treatment for hypercalcemia to achieve a normal physiologic range prior to therapy initiation)” were excluded.</li>
+          <li><strong>Safety cut-offs:</strong> symptomatic hypocalcemia with confirmed systemic ionized calcium “&lt; 0.9 mmol/L”; symptomatic hypercalcemia with confirmed systemic ionized calcium “&gt; 1.4 mmol/L”.</li>
+          <li><strong>Accumulation:</strong> symptomatic citrate accumulation “with a systemic total calcium to ionized calcium ratio &gt; 2.5.”</li>
+          <li><strong>Do not use if (trial exclusions used on the card):</strong> “known allergy to citrate or who have ever experienced an adverse reaction associated with citrate products, including patients with a prior history of citrate toxicity”; “acute liver failure, defined by the occurrence of encephalopathy and hepatic synthetic dysfunction within 26 weeks of the first symptoms of liver disease and without evidence of chronic liver disease”; “acute-on-chronic liver failure characterized by acute decompensation of cirrhosis and a Child-Pugh Liver Failure Score &gt;10”; “refractory shock and associated lactic acidosis (lactate &gt;4 mmol/L)”; systemic ionized calcium outside 1.0–1.3 mmol/L unless corrected first, as above.</li>
+        </ul>
+        <p>Other trial eligibility items (age ≥18, expected survival of at least 24 hours, pregnancy or breastfeeding, concurrent interventional study) are not shown as citrate contraindications on the card, because they are study entry criteria, not protocol rules for citrate use in practice.</p>
         <h4>1. KDIGO AKI 2012, chapter 5.3 (Anticoagulation)</h4>
         <p>KDIGO Clinical Practice Guideline for Acute Kidney Injury. <em>Kidney Int Suppl.</em> 2012;2:1-138.</p>
         <ul>
@@ -517,7 +528,7 @@
         <p>Meier-Kriesche HU, et al. <em>Crit Care Med.</em> 2001;29:748-752 (PMID 11373461) — early report of a raised total-to-ionized calcium ratio during citrate CVVHD, all in liver failure.</p>
         <h4>Calcium ratio check (arithmetic)</h4>
         <p class="eq">Ratio = total Ca (mmol/L) ÷ ionized Ca (mmol/L)<br>mg/dL ÷ 4 = mmol/L</p>
-        <p>Flags: 2.5 or more (Schneider 2017); above 2.25 (Oudemans-van Straaten 2012). Screening marker only.</p>`,
+        <p>Main flag: a ratio above 2.5 (Prismocitrate 18 trial, NCT05399537). A reading above 2.25 is noted as “consider” (Oudemans-van Straaten 2012). Exactly 2.5 is not above the trial flag, so it stays in the “consider” band. Supporting literature: Schneider 2017, usual recognized cut-off of 2.5. Screening marker only.</p>`,
     },
   };
 

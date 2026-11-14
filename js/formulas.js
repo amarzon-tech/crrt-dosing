@@ -32,10 +32,12 @@
     FF_CAUTION: 0.2,
     FF_WARN: 0.25,
     // Total / ionized calcium ratio during regional citrate anticoagulation.
-    // 2.5: Schneider AG, Journois D, Rimmele T. Crit Care. 2017;21:281
-    //   (doi:10.1186/s13054-017-1880-1): "A cut-off value of 2.5 is usually
-    //   recognized as indicative of significant accumulation but a trend
-    //   towards this value is highly indicative of ongoing accumulation."
+    // Primary flag >2.5: Prismocitrate 18 trial, NCT05399537, primary outcome
+    //   "symptomatic citrate accumulation": "a systemic total calcium to
+    //   ionized calcium ratio > 2.5." Comparison is strictly greater than 2.5.
+    // 2.5 also cited as the usual recognized cut-off in Schneider AG,
+    //   Journois D, Rimmele T. Crit Care. 2017;21:281
+    //   (doi:10.1186/s13054-017-1880-1).
     // 2.25: Oudemans-van Straaten HM, Ostermann M. Crit Care. 2012;16:249
     //   (doi:10.1186/cc11645): "A rise in total to ionized calcium ratio
     //   >2.25 should trigger the clinician to consider citrate accumulation."
@@ -342,9 +344,11 @@
   /**
    * Total / ionized calcium ratio for citrate accumulation on RCA.
    * Both concentrations converted to mmol/L (mg/dL ÷ 4).
-   *   ratio >= 2.5        -> "accumulation"  (Schneider 2017: usual cut-off)
-   *   2.25 < ratio < 2.5  -> "consider"      (Oudemans-van Straaten 2012:
-   *                                           >2.25 should trigger considering it)
+   *   ratio > 2.5         -> "accumulation"  (Prismocitrate 18 trial,
+   *                                           NCT05399537: ratio > 2.5)
+   *   2.25 < ratio <= 2.5 -> "consider"      (Oudemans-van Straaten 2012:
+   *                                           >2.25 should trigger considering it;
+   *                                           exactly 2.5 is not above the trial flag)
    *   otherwise           -> "below"
    * Screening marker only; a rising trend matters (Schneider 2017).
    */
@@ -357,7 +361,7 @@
     // Compare on 3 decimals so float artefacts (e.g. 2.2500000001) don't flip status.
     const r3 = Math.round(ratio * 1000) / 1000;
     let status = "below";
-    if (r3 >= TARGETS.CITRATE_RATIO_CUTOFF) status = "accumulation";
+    if (r3 > TARGETS.CITRATE_RATIO_CUTOFF) status = "accumulation";
     else if (r3 > TARGETS.CITRATE_RATIO_CONSIDER) status = "consider";
     return { ratio, totalMmol, icaMmol, status };
   }

@@ -86,6 +86,20 @@ section("Citrate precautions content");
   isTrue(html.includes(k), "reference listed: " + k)
 );
 
+section("Prismocitrate 18 reference protocol (NCT05399537)");
+["Reference protocol: Prismocitrate 18 (NCT05399537)", "not a Bon Secours Richmond policy",
+ "0.25–0.35", "1.0–1.3", "&gt;2.5", "above 2.5", "pre-dilution only", "3 mmol/L of blood",
+ "Child-Pugh score &gt;10", "lactate &gt;4 mmol/L", "prior citrate toxicity",
+ "does not calculate citrate or calcium doses"].forEach((k) =>
+  isTrue(html.includes(k), "protocol block mentions: " + k)
+);
+isTrue(html.includes("&lt;0.9") && html.includes("&gt;1.4"), "trial safety cut-offs <0.9 and >1.4 are shown");
+isTrue(html.includes("NCT05399537") && html.includes("clinicaltrials.gov/study/NCT05399537"), "trial identifier and record URL are listed");
+isTrue(/Main flag: a ratio <strong>above 2.5<\/strong>/.test(html), "ratio check names >2.5 as the main flag");
+isTrue(app.includes("Above 2.5 — accumulation by the trial definition"), "ratio reading uses the trial >2.5 wording");
+isTrue(app.includes("Above 2.25 — consider accumulation"), "softer >2.25 consider note is kept");
+isTrue(!/citrateInfusionRate|calciumReplacement|citrate dose calculator/i.test(html + app), "no citrate or calcium dose calculator added");
+
 console.log("\n────────────────────────────────────────");
 console.log(`Passed: ${passed}   Failed: ${failed}`);
 if (failed) {
