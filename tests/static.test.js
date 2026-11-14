@@ -224,9 +224,10 @@ isTrue(/anticoagulation === "citrate"/.test(app) && /c-cit-rate/.test(app), "cit
 isTrue(/applyPrismocitratePreFilter/.test(app), "citrate rate is reconciled as pre-filter replacement");
 isTrue(/prescribed = \(F\.isNum\(qeffUse\) \? qeffUse : s\.qeffMlH\) \/ wt/.test(app), "dose-check prescribed effluent uses the citrate-inclusive qeff when predilution correction cannot run");
 isTrue(/counted toward the dose/.test(app) && /citrateExceedsTarget/.test(read("js/formulas.js")), "citrate is counted toward the dose and can flag an over-target rate");
+isTrue(/rx-note/.test(app) && /rx-note/.test(read("css/standalone.css")), "dose-cut note is styled as sentence-case body text, not an uppercase section");
 isTrue(/- \[ \] Sign-off: Prismocitrate 18 rate, counting citrate toward the dose, and calcium infusion per protocol/.test(review), "unticked sign-off item for the citrate rate and dose cut");
 isTrue(/DRAFT\s*=\s*true/.test(read("js/config.js")), "DRAFT stays true");
-isTrue(/crrt-dosing-v12/.test(read("sw.js")), "service-worker cache version is bumped");
+isTrue(/crrt-dosing-v13/.test(read("sw.js")), "service-worker cache version is bumped");
 
 console.log("\n────────────────────────────────────────");
 console.log(`Passed: ${passed}   Failed: ${failed}`);

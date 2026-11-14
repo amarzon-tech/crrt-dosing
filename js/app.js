@@ -825,9 +825,9 @@
     const trimmed = line.trim();
     const idx = trimmed.indexOf(":");
     if (idx < 0) {
-      return trimmed
-        ? '<div class="rx-section">' + esc(trimmed) + "</div>"
-        : "";
+      if (!trimmed) return "";
+      const note = /counted toward dose|exceeds the target dose/i.test(trimmed);
+      return '<div class="' + (note ? "rx-note" : "rx-section") + '">' + esc(trimmed) + "</div>";
     }
     const label = trimmed.slice(0, idx);
     const value = trimmed.slice(idx + 1).trim();

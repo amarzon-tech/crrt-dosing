@@ -1,5 +1,5 @@
 /* Offline cache for CRRT Dosing. No network after first load. */
-const CACHE = "crrt-dosing-v12";
+const CACHE = "crrt-dosing-v13";
 const ASSETS = [
   "./",
   "./index.html",
