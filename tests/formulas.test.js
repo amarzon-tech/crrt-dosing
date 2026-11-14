@@ -108,6 +108,13 @@ section("Filtration fraction (Neri Crit Care 2016; Mehta Blood Purif 2016)");
   approx(hd.qufMlH, 100, 1e-12, "CVVHD Quf is net UF only");
   approx(hd.ffUsedPct, (100 / 6300) * 100, 1e-12, "CVVHD used FF = Qnet/Qp");
 }
+{
+  // SCUF: FF = UF / plasma flow. Qp = 200 × 60 × 0.7 = 8400 mL/h.
+  const sc = F.filtrationFraction({ qbMlMin: 200, hct: 0.3, qnetMlH: 200, modality: "scuf" });
+  approx(sc.qufMlH, 200, 1e-12, "SCUF Quf is net UF only");
+  approx(sc.ffUsedPct, (200 / 8400) * 100, 1e-12, "SCUF FF = UF / Qp");
+  approx(sc.ffPostPct, sc.ffUsedPct, 1e-12, "SCUF has no predilution, used FF is post-style");
+}
 
 section("Minimum Qb to keep FF at 25% (derived from FF equation)");
 {
@@ -154,17 +161,6 @@ section("Suggested prescription from target dose (KDIGO default 25 mL/kg/h)");
     weightKg: 80,
     targetMlKgH: 25,
     qnetMlH: 100,
-    modality: "cvvh-mixed",
-    preFraction: 0.5,
-  });
-  approx(s.qpreMlH, 950, 1e-12, "mixed 50/50 Qpre");
-  approx(s.qpostMlH, 950, 1e-12, "mixed 50/50 Qpost");
-}
-{
-  const s = F.suggestCrrtPrescription({
-    weightKg: 80,
-    targetMlKgH: 25,
-    qnetMlH: 100,
     modality: "cvvhd",
   });
   approx(s.qdMlH, 1900, 1e-12, "CVVHD all remaining is dialysate");
@@ -197,22 +193,12 @@ section("Suggested prescription from target dose (KDIGO default 25 mL/kg/h)");
   const s = F.suggestCrrtPrescription({
     weightKg: 80,
     targetMlKgH: 25,
-    qnetMlH: 100,
-    modality: "cvvh-mixed",
-  });
-  approx(s.qpreMlH, 950, 1e-12, "mixed default 50% pre");
-  approx(s.qpostMlH, 950, 1e-12, "mixed default 50% post");
-}
-
-{
-  const s = F.suggestCrrtPrescription({
-    weightKg: 80,
-    targetMlKgH: 25,
     qnetMlH: 2500,
     modality: "cvvh-post",
   });
   eq(s.netExceedsTarget, true, "net UF 2500 > target effluent 2000 is flagged");
 }
+throws(() => F.suggestCrrtPrescription({ weightKg: 80, targetMlKgH: 25, modality: "scuf" }), "SCUF has no suggested clearance rates");
 
 section("Delivered dose with downtime (KDIGO 5.8.1 time-weighted approximation)");
 {

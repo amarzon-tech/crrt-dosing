@@ -165,7 +165,8 @@
   /**
    * Filtration fraction.
    * Quf (convective ultrafiltration) = Qpre + Qpost + Qnet
-   *   For pure CVVHD, Quf = Qnet only (dialysate is not ultrafiltrate).
+   *   For pure CVVHD and for SCUF, Quf = Qnet only (dialysate is not ultrafiltrate;
+   *   SCUF has no dialysate or replacement). SCUF FF = UF / plasma flow.
    * Post-style FF = Quf / Qp
    * Pre-dilution FF = Quf / (Qp + Qpre)
    *
@@ -184,7 +185,7 @@
     const qpost = opts.qpostMlH || 0;
     const qnet = opts.qnetMlH || 0;
     const modality = opts.modality || "cvvh";
-    const quf = modality === "cvvhd" ? qnet : qpre + qpost + qnet;
+    const quf = (modality === "cvvhd" || modality === "scuf") ? qnet : qpre + qpost + qnet;
     const ffPost = qp > 0 ? quf / qp : Infinity;
     const ffPre = qp + qpre > 0 ? quf / (qp + qpre) : Infinity;
     // The clinically used FF for warning is the pre-style when predilution
@@ -218,7 +219,7 @@
     const qpost = opts.qpostMlH || 0;
     const qnet = opts.qnetMlH || 0;
     const modality = opts.modality || "cvvh";
-    const quf = modality === "cvvhd" ? qnet : qpre + qpost + qnet;
+    const quf = (modality === "cvvhd" || modality === "scuf") ? qnet : qpre + qpost + qnet;
     const denom = 60 * (1 - hct);
     if (denom <= 0) throw new Error("Hematocrit too high for plasma-flow calculation");
     const qb = (quf / ff - qpre) / denom;
@@ -232,13 +233,13 @@
    * Remaining effluent (Qeff − Qnet) is split by modality:
    *   CVVH post:  all remaining → Qpost
    *   CVVH pre:   all remaining → Qpre
-   *   CVVH mixed: remaining × preFraction → Qpre, rest → Qpost
    *   CVVHD:      all remaining → Qd
    *   CVVHDF:     remaining × dialysateFraction → Qd; the rest is replacement,
    *               then split by preFraction.
-   * The app locks preFraction and dialysateFraction at 0.5 (50/50).
+   * The app locks CVVHDF preFraction and dialysateFraction at 0.5 (50/50).
    * These parameters remain so the equation can be tested at other splits.
    * They are NOT guideline targets.
+   * SCUF is not calculated here: it has no dose target, dialysate, or replacement.
    */
   function suggestCrrtPrescription(opts) {
     const wt = req("weight", opts.weightKg);
@@ -265,10 +266,6 @@
           break;
         case "cvvh-post":
           qpost = remaining;
-          break;
-        case "cvvh-mixed":
-          qpre = remaining * preFrac;
-          qpost = remaining * (1 - preFrac);
           break;
         case "cvvhd":
           qd = remaining;

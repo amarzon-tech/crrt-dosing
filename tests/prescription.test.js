@@ -192,9 +192,35 @@ excludes(crrt.text, "PD", "CRRT sheet has no PD text");
 
 section("Modality labels");
 eq(Rx.modalityOrderLabel("cvvh-pre"), "CVVH (pre-filter replacement)", "pre");
-eq(Rx.modalityOrderLabel("cvvh-mixed"), "CVVH (mixed pre- and post-filter replacement)", "mixed");
+eq(Rx.modalityOrderLabel("scuf"), "SCUF", "SCUF");
 eq(Rx.modalityOrderLabel("cvvhd"), "CVVHD", "CVVHD");
 eq(Rx.modalityOrderLabel("cvvhdf"), "CVVHDF", "CVVHDF");
+eq(Rx.modalityOrderLabel("cvvh-post"), "CVVH (post-filter replacement)", "post");
+
+section("SCUF prescription");
+const scuf = Rx.formatCrrtPrescription({
+  date: DATE,
+  modality: "scuf",
+  qbMlMin: 200,
+  qnetMlH: 100,
+  qdMlH: 999,
+  qpreMlH: 999,
+  qpostMlH: 999,
+  anticoagulation: "none",
+});
+includes(scuf.text, "Modality: SCUF", "SCUF modality");
+includes(scuf.text, "Blood flow: 200 mL/min", "SCUF blood flow");
+includes(scuf.text, "Patient fluid removal: 100 mL/h", "SCUF fluid removal");
+includes(scuf.text, "Anticoagulation: None", "SCUF anticoagulation");
+excludes(scuf.text, "Dialysate", "SCUF has no dialysate line");
+excludes(scuf.text, "replacement", "SCUF has no replacement line");
+excludes(scuf.text, "Prescribed dose", "SCUF prescription has no prescribed dose");
+excludes(scuf.text, "Delivered dose", "SCUF prescription has no delivered dose");
+excludes(scuf.text, "mL/kg/h", "SCUF prescription has no dose in mL/kg/h");
+const scufDc = Rx.formatDoseCheck({ modality: "scuf", weightKg: 80, prescribedMlKgH: 25, deliveredMlKgH: 22.5, ffPct: 2.4 });
+excludes(scufDc.text, "Prescribed dose", "SCUF dose check hides prescribed dose");
+excludes(scufDc.text, "Delivered dose", "SCUF dose check hides delivered dose");
+includes(scufDc.text, "Filtration fraction: 2.4%", "SCUF dose check can show FF");
 
 console.log("\n────────────────────────────────────────");
 console.log(`Passed: ${passed}   Failed: ${failed}`);

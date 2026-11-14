@@ -65,14 +65,21 @@
           </div>
           <div class="mod-h" style="margin-top:0"><span class="field-label">Modality <span class="tag">default CVVH post</span></span></div>
           <div class="chips big" id="c-mod" role="radiogroup" aria-label="CRRT modality" style="margin-top:6px">
-            <button type="button" class="chip" role="radio" aria-checked="false" data-mod="cvvh-pre">CVVH pre</button>
-            <button type="button" class="chip is-on" role="radio" aria-checked="true" data-mod="cvvh-post">CVVH post</button>
-            <button type="button" class="chip" role="radio" aria-checked="false" data-mod="cvvh-mixed">CVVH mixed</button>
+            <button type="button" class="chip is-on" role="radio" aria-checked="true" data-mod="cvvh">CVVH</button>
             <button type="button" class="chip" role="radio" aria-checked="false" data-mod="cvvhd">CVVHD</button>
             <button type="button" class="chip" role="radio" aria-checked="false" data-mod="cvvhdf">CVVHDF</button>
+            <button type="button" class="chip" role="radio" aria-checked="false" data-mod="scuf">SCUF</button>
+          </div>
+          <div class="bolus-row" id="c-cvvh-repl-wrap" style="margin-top:12px">
+            <span class="field-label" id="c-cvvh-repl-lbl">Replacement</span>
+            <div class="chips big" id="c-cvvh-repl" role="radiogroup" aria-labelledby="c-cvvh-repl-lbl">
+              <button type="button" class="chip" role="radio" aria-checked="false" data-repl="pre">Pre</button>
+              <button type="button" class="chip is-on" role="radio" aria-checked="true" data-repl="post">Post</button>
+            </div>
           </div>
           <p class="note split-note hidden" id="c-split-note">Split fixed at 50/50</p>
-          <p class="note">KDIGO 2012 (5.8.4) recommends <strong>delivering</strong> 20–25 mL/kg/h, which usually means prescribing 25–30 mL/kg/h. The default prescribed target of 25 is set on the last step.</p>
+          <p class="note" id="c-kdigo-mod-note">KDIGO 2012 (5.8.4) recommends <strong>delivering</strong> 20–25 mL/kg/h, which usually means prescribing 25–30 mL/kg/h. The default prescribed target of 25 is set on the last step.</p>
+          <p class="note hidden" id="c-scuf-mod-note">SCUF removes fluid only. There is no dialysate, replacement fluid, or dose target.</p>
         </article>
       </div>
 
@@ -102,7 +109,7 @@
 
           <div class="grid-2 simple" style="margin-top:14px">
           <label class="field">
-            <span class="field-label">Weight <span class="tag req">required</span></span>
+            <span class="field-label">Weight <span class="tag req" id="c-wt-tag">required</span></span>
             <div class="field-control">
               <input id="c-wt" type="text" inputmode="decimal" enterkeyhint="next" autocomplete="off" placeholder="e.g. 80" aria-label="Weight in kilograms">
               <span class="unit-pill">kg</span>
@@ -126,13 +133,14 @@
             </div>
           </label>
           <p class="note" id="c-qnet-24h">Equivalent: 0 mL/24 h</p>
+          <p class="note hidden" id="c-qnet-scuf-msg">Enter a fluid removal rate greater than 0 mL/h.</p>
 
           <div class="metric-grid two" id="c-flow-metrics">
             <div class="metric" id="m-ff"><div class="mv" id="c-ff">—</div><div class="ml">Filtration fraction</div></div>
-            <div class="metric"><div class="mv" id="c-r-corr">—</div><div class="ml">Predilution-corrected dose</div></div>
+            <div class="metric" id="c-corr-metric"><div class="mv" id="c-r-corr">—</div><div class="ml">Predilution-corrected dose</div></div>
           </div>
           <div class="hidden" aria-hidden="true"><span id="c-qbmin"></span></div>
-          <p class="note">Uses the default target of 25 mL/kg/h and the fluid-removal rate above. Blank blood flow or hematocrit is not assumed.</p>
+          <p class="note" id="c-flow-dose-note">Uses the default target of 25 mL/kg/h and the fluid-removal rate above. Blank blood flow or hematocrit is not assumed.</p>
         </article>
       </div>
 
@@ -409,8 +417,8 @@
           </div>
           <div class="result-rows" id="dose-check-rows">
             <div class="result-row"><span class="rk">Weight</span><span class="rv" id="dc-wt">—</span></div>
-            <div class="result-row"><span class="rk">Prescribed dose</span><span class="rv" id="dc-pres">—</span></div>
-            <div class="result-row"><span class="rk">Delivered dose</span><span class="rv" id="dc-del">—</span></div>
+            <div class="result-row" id="dc-pres-row"><span class="rk">Prescribed dose</span><span class="rv" id="dc-pres">—</span></div>
+            <div class="result-row" id="dc-del-row"><span class="rk">Delivered dose</span><span class="rv" id="dc-del">—</span></div>
             <div class="result-row"><span class="rk">Filtration fraction</span><span class="rv" id="dc-ff">—</span></div>
           </div>
           <p class="note" id="dc-note"></p>

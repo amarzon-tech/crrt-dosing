@@ -45,12 +45,12 @@
         return "CVVH (pre-filter replacement)";
       case "cvvh-post":
         return "CVVH (post-filter replacement)";
-      case "cvvh-mixed":
-        return "CVVH (mixed pre- and post-filter replacement)";
       case "cvvhd":
         return "CVVHD";
       case "cvvhdf":
         return "CVVHDF";
+      case "scuf":
+        return "SCUF";
       default:
         return "";
     }
@@ -132,13 +132,14 @@
     if (usedRate(opts.qbMlMin)) {
       lines.push("Blood flow: " + qty(opts.qbMlMin, "mL/min", 0));
     }
-    if (usedRate(opts.qdMlH)) {
+    const scuf = (opts.modality || "").toLowerCase() === "scuf";
+    if (!scuf && usedRate(opts.qdMlH)) {
       lines.push("Dialysate: " + qty(opts.qdMlH, "mL/h", 0));
     }
-    if (usedRate(opts.qpreMlH)) {
+    if (!scuf && usedRate(opts.qpreMlH)) {
       lines.push("Pre-filter replacement: " + qty(opts.qpreMlH, "mL/h", 0));
     }
-    if (usedRate(opts.qpostMlH)) {
+    if (!scuf && usedRate(opts.qpostMlH)) {
       lines.push("Post-filter replacement: " + qty(opts.qpostMlH, "mL/h", 0));
     }
     if (isNum(opts.qnetMlH)) {
@@ -162,12 +163,15 @@
   function formatDoseCheck(opts) {
     opts = opts || {};
     const lines = ["Dose check"];
+    const scuf = (opts.modality || "").toLowerCase() === "scuf";
     lines.push("Weight: " + qty(opts.weightKg, "kg", Number.isInteger(opts.weightKg) ? 0 : 1));
-    lines.push("Prescribed dose: " + qty(opts.prescribedMlKgH, "mL/kg/h", 1));
-    const delivered = isNum(opts.deliveredMlKgH)
-      ? opts.deliveredMlKgH
-      : opts.downtimeAdjustedMlKgH;
-    lines.push("Delivered dose: " + qty(delivered, "mL/kg/h", 1));
+    if (!scuf) {
+      lines.push("Prescribed dose: " + qty(opts.prescribedMlKgH, "mL/kg/h", 1));
+      const delivered = isNum(opts.deliveredMlKgH)
+        ? opts.deliveredMlKgH
+        : opts.downtimeAdjustedMlKgH;
+      lines.push("Delivered dose: " + qty(delivered, "mL/kg/h", 1));
+    }
     if (isNum(opts.ffPct)) {
       lines.push("Filtration fraction: " + fmt(opts.ffPct, 1) + "%");
     } else {

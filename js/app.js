@@ -87,15 +87,60 @@
     });
   }
 
-  let modality = "cvvh-post";
-  function syncSplitNote() {
-    const split = modality === "cvvh-mixed" || modality === "cvvhdf";
-    const note = $("c-split-note");
-    if (note) note.classList.toggle("hidden", !split);
+  let modality = "cvvh";
+  let cvvhReplacement = "post";
+
+  function isScuf() {
+    return modality === "scuf";
   }
+
+  function rateModality() {
+    if (modality === "cvvh") return cvvhReplacement === "pre" ? "cvvh-pre" : "cvvh-post";
+    return modality;
+  }
+
+  function syncScufUfPrompt() {
+    const el = $("c-qnet-scuf-msg");
+    if (!el) return;
+    const qnet = num($("c-qnet"));
+    const show = isScuf() && !(F.isNum(qnet) && qnet > 0);
+    el.classList.toggle("hidden", !show);
+    el.classList.toggle("warn-text", show);
+  }
+
+  function syncModalityUi() {
+    const cvvh = modality === "cvvh";
+    const hdf = modality === "cvvhdf";
+    const scuf = isScuf();
+    if ($("c-cvvh-repl-wrap")) $("c-cvvh-repl-wrap").classList.toggle("hidden", !cvvh);
+    if ($("c-split-note")) $("c-split-note").classList.toggle("hidden", !hdf);
+    if ($("c-kdigo-mod-note")) $("c-kdigo-mod-note").classList.toggle("hidden", scuf);
+    if ($("c-scuf-mod-note")) $("c-scuf-mod-note").classList.toggle("hidden", !scuf);
+    if ($("optional-card")) $("optional-card").classList.toggle("hidden", scuf);
+    ["dc-pres-row", "dc-del-row", "c-corr-metric", "c-flow-dose-note"].forEach((id) => {
+      if ($(id)) $(id).classList.toggle("hidden", scuf);
+    });
+    const wtTag = $("c-wt-tag");
+    if (wtTag) {
+      wtTag.textContent = scuf ? "optional" : "required";
+      wtTag.classList.toggle("req", !scuf);
+    }
+    const wtMsg = $("c-wt-msg");
+    if (wtMsg && !wtMsg.classList.contains("warn-text")) {
+      wtMsg.textContent = scuf
+        ? "Weight is optional for SCUF. It is used if you choose heparin."
+        : "Enter the patient’s weight in kilograms to continue.";
+    }
+    syncScufUfPrompt();
+  }
+
   bindChips("c-mod", (btn) => {
     modality = btn.dataset.mod;
-    syncSplitNote();
+    syncModalityUi();
+    recalc();
+  });
+  bindChips("c-cvvh-repl", (btn) => {
+    cvvhReplacement = btn.dataset.repl;
     recalc();
   });
 
@@ -156,9 +201,9 @@
   const ROWS_BY_MOD = {
     "cvvh-pre": ["row-qpre"],
     "cvvh-post": ["row-qpost"],
-    "cvvh-mixed": ["row-qpre", "row-qpost"],
     cvvhd: ["row-qd"],
     cvvhdf: ["row-qd", "row-qpre", "row-qpost"],
+    scuf: [],
   };
 
   function ffFlagFromPct(ffPct) {
@@ -182,19 +227,23 @@
     const dFrac = 0.5;
 
     ["row-qpre", "row-qpost", "row-qd"].forEach((r) => {
-      if ($(r)) $(r).classList.toggle("dim", ROWS_BY_MOD[modality].indexOf(r) < 0);
+      if ($(r)) $(r).classList.toggle("dim", (ROWS_BY_MOD[rateModality()] || []).indexOf(r) < 0);
     });
+
+    syncScufUfPrompt();
+    const scuf = isScuf();
+    const mod = rateModality();
 
     let s = null;
     let msg = "Enter weight to see rates. Results update as you type.";
     let msgWarn = false;
-    if (F.isNum(wt) && wt > 0 && F.isNum(target) && target > 0) {
+    if (!scuf && F.isNum(wt) && wt > 0 && F.isNum(target) && target > 0) {
       try {
         s = F.suggestCrrtPrescription({
           weightKg: wt,
           targetMlKgH: target,
           qnetMlH: qnet,
-          modality,
+          modality: mod,
           preFraction: preFrac,
           dialysateFraction: dFrac,
         });
@@ -218,12 +267,12 @@
     msgEl.textContent = msg;
     msgEl.classList.toggle("warn-text", msgWarn);
 
-    const ok = s && !s.netExceedsTarget;
+    const ok = !scuf && s && !s.netExceedsTarget;
     setText("r-qeff", ok ? fmt(s.qeffMlH, 0) + " mL/h" : "—");
     setText("r-qpre", ok ? fmt(s.qpreMlH, 0) + " mL/h" : "—");
     setText("r-qpost", ok ? fmt(s.qpostMlH, 0) + " mL/h" : "—");
     setText("r-qd", ok ? fmt(s.qdMlH, 0) + " mL/h" : "—");
-    setText("r-qnet", ok ? fmt(qnet, 0) + " mL/h" : "—");
+    setText("r-qnet", (scuf || ok) && F.isNum(qnet) ? fmt(qnet, 0) + " mL/h" : "—");
 
     let prescribed = null;
     let corrected = null;
@@ -233,7 +282,25 @@
     let needQbHct = false;
     const haveQbHct = F.isNum(qb) && qb > 0 && F.isNum(hct) && hct > 0 && hct < 100;
 
-    if (ok) {
+    if (scuf) {
+      // No dose target, delivered dose, or suggested clearance rates.
+      // FF = UF / plasma flow when blood flow and hematocrit are entered.
+      // No SCUF-specific numeric limits are applied.
+      if (haveQbHct) {
+        try {
+          ffPct = F.filtrationFraction({
+            qbMlMin: qb,
+            hct,
+            qpreMlH: 0,
+            qpostMlH: 0,
+            qnetMlH: qnet,
+            modality: "scuf",
+          }).ffUsedPct;
+        } catch (e) {
+          ffPct = null;
+        }
+      }
+    } else if (ok) {
       try {
         const d = F.crrtEffluentDose({
           weightKg: wt,
@@ -263,7 +330,7 @@
             qpreMlH: s.qpreMlH,
             qpostMlH: s.qpostMlH,
             qnetMlH: s.qnetMlH,
-            modality: modality === "cvvhd" ? "cvvhd" : "cvvh",
+            modality: mod === "cvvhd" ? "cvvhd" : "cvvh",
           };
           ffPct = F.filtrationFraction(ffOpts).ffUsedPct;
           qbMin = F.minQbForFf(ffOpts, F.TARGETS.FF_WARN).qbMlMin;
@@ -274,7 +341,7 @@
       }
     }
 
-    const ffFlag = ffFlagFromPct(ffPct);
+    const ffFlag = scuf ? "" : ffFlagFromPct(ffPct);
     setText("c-ff", F.isNum(ffPct) && Number.isFinite(ffPct) ? fmt(ffPct, 1) + "%" : "—");
     metricState($("m-ff"), ffFlag === "warning" ? "bad" : ffFlag === "caution" ? "warn" : F.isNum(ffPct) ? "ok" : "");
     setText("c-qbmin", F.isNum(qbMin) && qbMin > 0 ? fmt(Math.ceil(qbMin), 0) + " mL/min" : "—");
@@ -289,7 +356,7 @@
     setText("c-r-qeff", ok ? fmt(s.qeffMlH, 0) + " mL/h" : "—");
     setText("c-r-ff", F.isNum(ffPct) && Number.isFinite(ffPct) ? fmt(ffPct, 1) + "%" : "—");
 
-    let chip = ["info", "Enter weight"];
+    let chip = ["info", scuf ? "SCUF" : "Enter weight"];
     if (s && s.netExceedsTarget) chip = ["bad", "Check net UF"];
     else if (needQbHct) chip = ["info", "Pre-filter: add Qb + Hct"];
     else if (F.isNum(delivered)) {
@@ -317,10 +384,12 @@
     setText("dc-del", F.isNum(delivered) ? fmt(delivered, 1) + " mL/kg/h" : "—");
     setText("dc-ff", F.isNum(ffPct) && Number.isFinite(ffPct) ? fmt(ffPct, 1) + "%" : "—");
     const notes = [];
-    if (s && s.netExceedsTarget) notes.push("Net UF is more than the target effluent. Lower net UF or raise the dose.");
-    else if (needQbHct) notes.push("Add blood flow and hematocrit for the predilution-corrected dose.");
-    if (ffFlag === "warning") notes.push("Filtration fraction is at or above 25%.");
-    else if (ffFlag === "caution") notes.push("Filtration fraction is at or above 20%.");
+    if (!scuf) {
+      if (s && s.netExceedsTarget) notes.push("Net UF is more than the target effluent. Lower net UF or raise the dose.");
+      else if (needQbHct) notes.push("Add blood flow and hematocrit for the predilution-corrected dose.");
+      if (ffFlag === "warning") notes.push("Filtration fraction is at or above 25%.");
+      else if (ffFlag === "caution") notes.push("Filtration fraction is at or above 20%.");
+    }
     setText("dc-note", notes.join(" "));
     if ($("dc-note")) $("dc-note").classList.toggle("warn-text", notes.length > 0);
 
@@ -396,13 +465,13 @@
     if (RX) {
       const rx = RX.formatCrrtPrescription({
         weightKg: F.isNum(wt) && wt > 0 ? wt : null,
-        modality,
-        targetMlKgH: F.isNum(target) && target > 0 ? target : null,
+        modality: scuf ? "scuf" : mod,
+        targetMlKgH: scuf ? null : (F.isNum(target) && target > 0 ? target : null),
         qbMlMin: F.isNum(qb) && qb > 0 ? qb : null,
-        qpreMlH: ok ? s.qpreMlH : null,
-        qpostMlH: ok ? s.qpostMlH : null,
-        qdMlH: ok ? s.qdMlH : null,
-        qnetMlH: ok ? s.qnetMlH : null,
+        qpreMlH: scuf || !ok ? null : s.qpreMlH,
+        qpostMlH: scuf || !ok ? null : s.qpostMlH,
+        qdMlH: scuf || !ok ? null : s.qdMlH,
+        qnetMlH: scuf ? (F.isNum(qnet) ? qnet : null) : (ok ? s.qnetMlH : null),
         anticoagulation,
         heparinBolusGiven: anticoagulation === "heparin" ? hep.given : null,
         heparinBolusUnits: hep.bolusUnits,
@@ -456,22 +525,22 @@
         <h4>How rates are split</h4>
         <p class="eq">Target effluent = target dose × weight<br>
         Remaining = target effluent − net UF<br>
-        CVVH post: remaining → post-filter replacement<br>
-        CVVH pre: remaining → pre-filter replacement<br>
-        CVVH mixed: remaining split 50% pre-filter and 50% post-filter (fixed)<br>
+        CVVH: remaining → post-filter or pre-filter replacement (Replacement: Pre / Post toggle; default Post)<br>
         CVVHD: remaining → dialysate (UF is the only convection)<br>
-        CVVHDF: remaining split 50% dialysate and 50% replacement, then replacement 50% pre-filter and 50% post-filter (fixed)</p>
+        CVVHDF: remaining split 50% dialysate and 50% replacement, then replacement 50% pre-filter and 50% post-filter (fixed)<br>
+        SCUF: no dialysate, no replacement, and no dose target. The prescription is blood flow, fluid removal (net UF), and anticoagulation.</p>
         <h4>Caveats</h4>
         <ul>
-          <li>The 50/50 splits are fixed (Dr D, 14 Nov 2026). They are <strong>not</strong> a guideline target.</li>
+          <li>The CVVHDF 50/50 splits are fixed (Dr D, 14 Nov 2026). They are <strong>not</strong> a guideline target.</li>
           <li>If net UF already exceeds the target effluent, rates are not auto-filled and a warning is implied by the dose numbers.</li>
+          <li>SCUF has no suggested clearance rates and no SCUF-specific numeric limits. Filtration fraction is shown if blood flow and hematocrit are entered (FF = UF / plasma flow).</li>
         </ul>`,
     },
     "crrt-rates": {
       title: "Filtration fraction and blood flow",
       html: `
         <h4>Equation</h4>
-        <p class="eq">Quf = Qpre + Qpost + Qnet &nbsp;(for CVVHD, Quf = Qnet only)<br>
+        <p class="eq">Quf = Qpre + Qpost + Qnet &nbsp;(for CVVHD and SCUF, Quf = Qnet only)<br>
         FF<sub>post-style</sub> = Quf / Qp<br>
         FF<sub>pre</sub> = Quf / (Qp + Qpre)<br>
         The FF used for warnings is the pre-style when Qpre &gt; 0.<br>
@@ -756,16 +825,26 @@
 
   function canLeaveStep(n) {
     if (n === 2) {
-      const wt = num($("c-wt"));
-      if (!(F.isNum(wt) && wt > 0)) {
-        stepHint("Enter the patient’s weight to continue.");
-        const msg = $("c-wt-msg");
-        if (msg) {
-          msg.textContent = "Weight is required, and must be more than 0.";
-          msg.classList.add("warn-text");
+      if (isScuf()) {
+        const qnet = num($("c-qnet"));
+        if (!(F.isNum(qnet) && qnet > 0)) {
+          stepHint("Enter a fluid removal rate greater than 0 mL/h.");
+          syncScufUfPrompt();
+          if ($("c-qnet")) $("c-qnet").focus();
+          return false;
         }
-        if ($("c-wt")) $("c-wt").focus();
-        return false;
+      } else {
+        const wt = num($("c-wt"));
+        if (!(F.isNum(wt) && wt > 0)) {
+          stepHint("Enter the patient’s weight to continue.");
+          const msg = $("c-wt-msg");
+          if (msg) {
+            msg.textContent = "Weight is required, and must be more than 0.";
+            msg.classList.add("warn-text");
+          }
+          if ($("c-wt")) $("c-wt").focus();
+          return false;
+        }
       }
     }
     if (n === 3) {
@@ -782,7 +861,9 @@
     stepHint("");
     const wtMsg = $("c-wt-msg");
     if (wtMsg && F.isNum(num($("c-wt"))) && num($("c-wt")) > 0) {
-      wtMsg.textContent = "Weight is used for the dose and heparin amounts. Results update as you type.";
+      wtMsg.textContent = isScuf()
+        ? "Weight is used if you choose heparin. Results update as you type."
+        : "Weight is used for the dose and heparin amounts. Results update as you type.";
       wtMsg.classList.remove("warn-text");
     }
     $$(".step").forEach((s) => {
@@ -832,7 +913,7 @@
   });
 
   /* first paint */
-  syncSplitNote();
+  syncModalityUi();
   syncHeparinBolusUi();
   syncAnticoagPanels();
   syncQbChipsFromInput();

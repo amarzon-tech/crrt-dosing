@@ -15,10 +15,10 @@ Please tick each item after reviewing the equation or statement, the citation, a
 
 Step-by-step flow (added 14 Nov 2026 after Dr D asked to replace the single screen), with Back and Next and a step indicator. No Calculate button. Results update as you type and are shown on the last step as a live prescription card. Every number field opens the numeric keypad (`inputmode="decimal"` or `"numeric"`). Inputs are 56 px tall; chips are 48 px. Defaults are pre-filled and labelled “default …”.
 
-1. **Modality** — chips; default CVVH post. For CVVH mixed and CVVHDF the effluent split is fixed at 50/50 (no slider). A one-line note reads “Split fixed at 50/50.” **Dr D chose this on Nov 14 2026.** It is not a guideline target and is not a sign-off. `DRAFT` stays true.
-2. **Blood flow & filtration.** Blood flow is a choice of common values (150, 200, 250, 300 mL/min) plus a custom entry (optional). Weight is required. Hematocrit is optional (moved here 14 Nov 2026 at Dr D’s request). Fluid removal (net UF, default 0 mL/h) follows hematocrit, with a helper line showing the equivalent mL/24 h (hourly rate × 24 only; not a 24-h fluid-balance planner). Once blood flow, hematocrit, and weight are entered, filtration fraction and the predilution-corrected dose update live on this step (using the default target of 25 mL/kg/h and the net UF above).
+1. **Modality** — four chips: CVVH, CVVHD, CVVHDF, and SCUF. Default is **CVVH** with **Replacement: Post**. CVVH has one **Replacement: Pre / Post** toggle (default Post). **CVVH mixed was removed.** CVVHDF stays locked at 50/50 dialysate/replacement, and that replacement remains 50/50 pre/post, with no toggle (to be asked of Dr D separately). A one-line note under CVVHDF reads “Split fixed at 50/50.” On 14 Nov 2026 Dr D asked why CVVH had pre, post and mixed options, whether they could be simplified, and why SCUF was not included; this layout follows that request. It is not a sign-off. `DRAFT` stays true.
+2. **Blood flow & filtration.** Blood flow is a choice of common values (150, 200, 250, 300 mL/min) plus a custom entry (optional). Weight is required for CVVH, CVVHD, and CVVHDF, and is optional for SCUF (used if heparin is chosen). Hematocrit is optional. Fluid removal (net UF, default 0 mL/h) follows hematocrit, with a helper line showing the equivalent mL/24 h (hourly rate × 24 only; not a 24-h fluid-balance planner). For SCUF, net UF must be greater than 0; an inline prompt is shown if it is 0. No numeric fluid-removal limit was invented for SCUF. Once blood flow, hematocrit, and (for dosing modalities) weight are entered, filtration fraction updates live. Predilution-corrected dose is shown for dosing modalities, not for SCUF. For SCUF, FF = UF / plasma flow when blood flow and hematocrit are entered.
 3. **Anticoagulant** — Heparin, Citrate, or None. The step is trimmed to inputs, outputs, and one-line key targets. Heparin shows **Bolus: Yes / No**, the bolus and infusion fields, and the calculated rates, plus a one-line aPTT 40–45 second target. Citrate shows compact targets (post-filter iCa 0.25–0.35 mmol/L, systemic iCa 1.0–1.3 mmol/L, Ca ratio >2.5 = accumulation), a short exclusions list, and a one-line predictors sentence (Schultheiß 2012: lactate ≥3.4 mmol/L or prothrombin time ≤26%). Long explanations, rationale, and full citations are behind a collapsed **Details & sources** toggle; nothing was deleted. The draft label stays visible.
-4. **Optional variables and the prescription.** Target dose (default 25 mL/kg/h) and downtime (default 10%, editable). The calcium ratio check appears only when Citrate is the selected anticoagulant, under a **Citrate monitoring** label on this step. It is hidden for Heparin or None, and the ratio reading is cleared from view when the card is hidden. The final output is a clean **prescription card, labeled as a draft**, listing only what is entered into the machine: modality, blood flow (mL/min), dialysate and pre- / post-filter replacement rates (mL/h, omitting unused or zero lines), patient fluid removal (net UF, mL/h), and anticoagulation (heparin bolus in units or “none” and infusion in units/h, plus mL/h if bag strength was entered; citrate as “Citrate per unit protocol” with no rates). A simple aligned two-column list with no prose. Weight, prescribed and delivered dose, filtration fraction, and notes sit in a separate **Dose check** area below the card, not on the prescription. Electrolyte or bath composition is omitted; it is the prescriber’s choice, and the app does not recommend fluid composition.
+4. **Optional variables and the prescription.** For dosing modalities, target dose (default 25 mL/kg/h) and downtime (default 10%, editable). For SCUF, the dose target, downtime, delivered dose, and suggested clearance rates are hidden. The calcium ratio check appears only when Citrate is the selected anticoagulant, under a **Citrate monitoring** label on this step. It is hidden for Heparin or None, and the ratio reading is cleared from view when the card is hidden. The final output is a clean **prescription card, labeled as a draft**, listing only what is entered into the machine: modality, blood flow (mL/min), dialysate and pre- / post-filter replacement rates (mL/h, omitting unused or zero lines), patient fluid removal (net UF, mL/h), and anticoagulation (heparin bolus in units or “none” and infusion in units/h, plus mL/h if bag strength was entered; citrate as “Citrate per unit protocol” with no rates). A simple aligned two-column list with no prose. Weight, prescribed and delivered dose, filtration fraction, and notes sit in a separate **Dose check** area below the card, not on the prescription. Electrolyte or bath composition is omitted; it is the prescriber’s choice, and the app does not recommend fluid composition.
 
 **Dr D confirmed defaults Nov 14 2026:** prescribed target **25 mL/kg/h**, modality **CVVH post**, heparin bolus **30 IU/kg** and infusion **7 IU/kg/h**. This confirms those starting values only. It is not a sign-off of the app, the new step flow, or other sections. `DRAFT` stays true.
 
@@ -26,12 +26,12 @@ Step-by-step flow (added 14 Nov 2026 after Dr D asked to replace the single scre
 
 | Step | Number fields | Required | Pre-filled defaults | Taps |
 |---|---|---|---|---|
-| 1. Modality | — | a modality (pre-selected) | CVVH post | Modality chip; CVVH mixed and CVVHDF show “Split fixed at 50/50” (no slider) |
-| 2. Blood flow & filtration | custom blood flow (if chosen), weight, hematocrit, net UF | Weight only | Net UF 0 mL/h; blood flow and hematocrit blank | Blood-flow chips 150 / 200 / 250 / 300 mL/min + Custom |
+| 1. Modality | — | a modality (pre-selected) | CVVH with Replacement: Post | Four chips (CVVH, CVVHD, CVVHDF, SCUF); CVVH has Replacement: Pre / Post (default Post); CVVHDF shows “Split fixed at 50/50” |
+| 2. Blood flow & filtration | custom blood flow (if chosen), weight, hematocrit, net UF | Weight (except SCUF, where it is optional); for SCUF, net UF > 0 | Net UF 0 mL/h; blood flow and hematocrit blank | Blood-flow chips 150 / 200 / 250 / 300 mL/min + Custom |
 | 3. Heparin (if chosen) | 3 (uses weight from step 2) | none beyond weight | Bolus 30 IU/kg, infusion 7 IU/kg/h; bag strength blank | Heparin chip; **Bolus: Yes / No** (default Yes; No hides and zeroes the bolus) |
-| 4. Optional + prescription | target, downtime; calcium ratio (2) only when Citrate is selected | none (defaults cover a basic dose) | Target 25 mL/kg/h; downtime 10% | Unit toggles on the calcium ratio (total Ca mg/dL ↔ mmol/L; ionized Ca mmol/L ↔ mg/dL), shown under Citrate monitoring only for citrate |
+| 4. Optional + prescription | target and downtime (hidden for SCUF); calcium ratio (2) only when Citrate is selected | none (defaults cover a basic dose; SCUF has no dose target) | Target 25 mL/kg/h; downtime 10% | Unit toggles on the calcium ratio (total Ca mg/dL ↔ mmol/L; ionized Ca mmol/L ↔ mg/dL), shown under Citrate monitoring only for citrate |
 
-So a basic dose still needs **1 entry** (weight). Heparin needs **0 extra entries** with defaults, or Bolus: No. When citrate is selected, the calcium ratio needs **2** lab values. Removed from the earlier draft to simplify: the 3-field 24-h fluid-balance planner (net UF is entered directly as mL/h), the “edit each rate” check mode, the free-text heparin aPTT / anti-Xa / monitoring fields, the citrate infusion-rate helper (see “Not included”), and bath / fluid-composition write-ins on the prescription card.
+So a basic dose still needs **1 entry** (weight). A SCUF prescription needs a fluid-removal rate greater than 0; weight is optional. Heparin needs **0 extra entries** with defaults, or Bolus: No. When citrate is selected, the calcium ratio needs **2** lab values. Removed from the earlier draft to simplify: the 3-field 24-h fluid-balance planner (net UF is entered directly as mL/h), the “edit each rate” check mode, the free-text heparin aPTT / anti-Xa / monitoring fields, the citrate infusion-rate helper (see “Not included”), and bath / fluid-composition write-ins on the prescription card.
 
 - [ ] Sign-off: data-entry design and defaults
 
@@ -41,7 +41,7 @@ So a basic dose still needs **1 entry** (weight). Heparin needs **0 extra entrie
 
 ### Effluent dose (prescribed, predilution-corrected, delivered)
 
-Live prescription builder: weight (required), target prescribed dose (default **25 mL/kg/h**), net UF (default **0 mL/h**), modality (default CVVH post), suggested rates, predilution correction (needs blood flow + hematocrit), and delivered dose after downtime (default **10%**, editable; Dr D chose the 10% default on Nov 14 2026). Suggested machine rates are still calculated from the prescribed target and are not increased to offset downtime.
+Live prescription builder: weight (required except for SCUF, where it is optional), target prescribed dose (default **25 mL/kg/h**, hidden for SCUF), net UF (default **0 mL/h**; for SCUF must be greater than 0), modality (default CVVH with Replacement: Post), suggested rates, predilution correction (needs blood flow + hematocrit), and delivered dose after downtime (default **10%**, editable; Dr D chose the 10% default on Nov 14 2026). Suggested machine rates are still calculated from the prescribed target and are not increased to offset downtime.
 
 **Equation**
 
@@ -80,11 +80,12 @@ KDIGO Clinical Practice Guideline for Acute Kidney Injury. *Kidney Int Suppl.* 2
 
 Remaining effluent after net UF is assigned as:
 
-- CVVH post → post-filter replacement
-- CVVH pre → pre-filter replacement
-- CVVH mixed → remaining split 50% pre-filter and 50% post-filter (fixed; **Dr D chose this on Nov 14 2026**)
+- CVVH → post-filter or pre-filter replacement, from the **Replacement: Pre / Post** toggle (default Post)
 - CVVHD → dialysate (convection is net UF only)
-- CVVHDF → remaining split 50% dialysate and 50% replacement, then replacement 50% pre-filter and 50% post-filter (fixed; **Dr D chose this on Nov 14 2026**)
+- CVVHDF → remaining split 50% dialysate and 50% replacement, then replacement 50% pre-filter and 50% post-filter (fixed; **Dr D chose this on Nov 14 2026**). No Pre/Post toggle is shown for CVVHDF.
+- SCUF → no dialysate, no replacement, and no dose target. The machine settings are blood flow, fluid removal (net UF, must be greater than 0), and anticoagulation. No suggested clearance rates. No SCUF-specific numeric limits were invented.
+
+CVVH mixed was removed on 14 Nov 2026 after Dr D asked why CVVH had pre, post and mixed options, whether they could be simplified, and why SCUF was not included.
 
 **Citation:** assignment is a description of the modalities, not a dose recommendation. Dose numbers come from KDIGO 5.8.4 as above.
 
@@ -99,7 +100,7 @@ Remaining effluent after net UF is assigned as:
 **Equation**
 
 ```
-Quf = Qpre + Qpost + Qnet     (for CVVHD, Quf = Qnet only)
+Quf = Qpre + Qpost + Qnet     (for CVVHD and SCUF, Quf = Qnet only; SCUF FF = UF / plasma flow)
 FF_post-style = Quf / Qp
 FF_pre        = Quf / (Qp + Qpre)
 Used FF       = FF_pre if Qpre > 0, else FF_post-style
@@ -290,7 +291,7 @@ If Citrate is chosen, the prescription card says “Anticoagulation: Citrate per
 
 ## Order sheet (formatting only)
 
-The last step’s final output is a clean **prescription card, labeled as a draft**, listing only machine settings in a two-column list with no prose: modality, blood flow (mL/min, omitted if not entered), dialysate and pre- / post-filter replacement (mL/h, omitting unused or zero lines), patient fluid removal (net UF, mL/h, shown even when the goal is 0), and anticoagulation (heparin: bolus in units or “none”, infusion in units/h, and mL/h only if bag strength was entered; citrate: “Citrate per unit protocol” with no rates). Weight, prescribed dose, delivered dose, filtration fraction, and notes are in a separate **Dose check** area below the card, not on the prescription. **Electrolyte or bath composition (K, Ca, bicarbonate) is omitted**; it is the prescriber’s choice, and the app does not recommend fluid composition. No anticoagulant is pre-selected.
+The last step’s final output is a clean **prescription card, labeled as a draft**, listing only machine settings in a two-column list with no prose: modality, blood flow (mL/min, omitted if not entered), dialysate and pre- / post-filter replacement (mL/h, omitting unused or zero lines; omitted entirely for SCUF), patient fluid removal (net UF, mL/h, shown even when the goal is 0), and anticoagulation (heparin: bolus in units or “none”, infusion in units/h, and mL/h only if bag strength was entered; citrate: “Citrate per unit protocol” with no rates). Weight, prescribed dose, delivered dose, filtration fraction, and notes are in a separate **Dose check** area below the card, not on the prescription. **Electrolyte or bath composition (K, Ca, bicarbonate) is omitted**; it is the prescriber’s choice, and the app does not recommend fluid composition. No anticoagulant is pre-selected.
 
 - [ ] Sign-off: order sheet
 
@@ -315,5 +316,5 @@ The last step’s final output is a clean **prescription card, labeled as a draf
 4. **Monitoring intervals** (every 6 h; 4–6 h; 2-hourly at start if at risk) are shown as what the reviews describe, with “timing per protocol”. The trial record does not give a monitoring interval, so none was invented.
 5. **Liver failure wording.** The trial block lists acute liver failure and acute-on-chronic liver failure with Child-Pugh >10 as exclusions. Below that, KDIGO 2012 still calls severe liver failure a major contraindication, and the 2012–2017 reviews still say citrate can be used with dose reduction and closer monitoring. Both layers are shown.
 6. **Lactate and PT predictors.** The trial exclusion **lactate >4 mmol/L** (with refractory shock) remains in the reference-protocol block. The reviews’ statement that no universal lactate cut-off has been established is kept as supporting text. The lactate ≥3.4 mmol/L and prothrombin time ≤26% predictors are now on the card, presented as predictors of citrate accumulation risk from Schultheiß et al. 2012 [7] (the observational study cited by review [4]), not as trial exclusions and not as a Bon Secours policy. The open-access paper was read in full on 14 Nov 2026; the numbers match the Results and Conclusions. The study does not report an INR cut-off, so prothrombin time is shown as ≤26% as published (no conversion was made).
-7. FF thresholds, plasma-water factor, and heparin defaults: same as the earlier draft (sections above). The mixed and CVVHDF 50/50 splits are now fixed, not clinician-adjustable (Dr D chose this on Nov 14 2026).
+7. FF thresholds, plasma-water factor, and heparin defaults: same as the earlier draft (sections above). CVVHDF 50/50 splits remain fixed, not clinician-adjustable (Dr D chose this on Nov 14 2026). No new numeric limits were invented for SCUF; if FF is shown it uses UF / plasma flow, without applying a SCUF-specific cut-off.
 8. **Bon Secours.** Dr D asked to check the Bon Secours citrate protocol, then said “Use that one” after being told the public record is the Prismocitrate 18 trial (a Springfield, Ohio Bon Secours Mercy Health site, now marked terminated). The card states clearly that these values are a trial protocol, not a Bon Secours Richmond policy.
